@@ -1,0 +1,33 @@
+{
+  "name": "skribbl_for_friends",
+  "version": "1.0.0",
+  "description": "A clone version of skribbl for friends",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "server": "nodemon server.js",
+    "client-install": "npm install --prefix client",
+    "client": "npm start --prefix client",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hongde88/skribbl_for_friends.git"
+  },
+  "keywords": [
+    "skribbl"
+  ],
+  "author": "LD + DN",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hongde88/skribbl_for_friends/issues"
+  },
+  "homepage": "https://github.com/hongde88/skribbl_for_friends#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "socket.io": "^2.3.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.4"
+  }
+}
