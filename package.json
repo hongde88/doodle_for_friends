@@ -25,6 +25,7 @@
   "homepage": "https://github.com/hongde88/skribbl_for_friends#readme",
   "dependencies": {
     "express": "^4.17.1",
+    "fakerator": "^0.3.1",
     "socket.io": "^2.3.0"
   },
   "devDependencies": {

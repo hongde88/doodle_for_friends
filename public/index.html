@@ -1,0 +1,44 @@
+<html lang="en">
+
+<head>
+  <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+  <title>Tester for FlutterChat server</title>
+
+  <style>
+    div {
+      padding-top: 20px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #000000;
+    }
+  </style>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="./scripts/test.js"></script>
+
+</head>
+
+<body onLoad="connect();">
+  <div class="chatArea">
+    <ul id="messages"></ul>
+  </div>
+  <div><input id="inputMessage" type="text" onkeydown="sendChat();" placeholder="Type here..." /></div>
+  <div id="timer"></div>
+  <div id="join"></div>
+  <div id="leave"></div>
+  <div><input type="button" value="start" onClick="startTimer();"></div>
+  <div><input type="button" value="play" onClick="playGame();"></div>
+  <!-- <div><input type="button" value="leave" onClick="leave();"></div> -->
+  <!-- <div><input type="button" value="reset" onClick="resetTimer();"></div> -->
+  <!-- <div><input type="button" value="validate" onClick="validate();"></div>
+  <div><input type="button" value="listUsers" onClick="listUsers();"></div>
+  <div><input type="button" value="create" onClick="create();"></div>
+  <div><input type="button" value="listRooms" onClick="listRooms();"></div>
+  <div><input type="button" value="join" onClick="join();"></div>
+  <div><input type="button" value="leave" onClick="leave();"></div>
+  <div><input type="button" value="kick" onClick="kick();"></div>
+  <div><input type="button" value="post" onClick="postMsg();"></div>
+  <div><input type="button" value="close" onClick="closeRoom();"></div>
+  <div><input type="button" value="invite" onClick="invite();"></div> -->
+</body>
+
+</html>
