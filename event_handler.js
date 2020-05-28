@@ -22,7 +22,7 @@ class EventHandler {
     socket.on('play', this.handlePlayEvent(socket));
 
     // private room handler
-    socket.on('private', this.handlePrivateRoomEvent(socket));
+    socket.on('private', this.handlePrivateRoomEvent(io, socket));
 
     // start timer handler
     socket.on('timer', this.handleStartTimerEvent(io));
