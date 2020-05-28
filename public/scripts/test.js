@@ -19,7 +19,7 @@ function connect() {
   socket.on('private', function (data) {
     document.getElementById(
       'private'
-    ).innerHTML = `roomId = ${data.roomId} ; word count = ${data.numberOfWords}`;
+    ).innerHTML = `roomId = ${data.roomId} ; random words = ${data.randomWords}`;
   });
   socket.on('old messages', function (data) {
     const messages = data.room;
@@ -59,6 +59,16 @@ function createPrivateRoom() {
     rounds: 3,
     timer: 120,
     exclusive: true,
+  });
+}
+
+function createPrivateRoomWithWords() {
+  socket.emit('private', {
+    username: 'test',
+    rounds: 3,
+    timer: 120,
+    exclusive: false,
+    words: 'boy, girl, son',
   });
 }
 
