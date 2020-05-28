@@ -4,8 +4,8 @@ import PlayerCreation from '../components/PlayerCreation/PlayerCreation';
 
 const Home = () => {
   return (
-    <Layout>
-      <PlayerCreation></PlayerCreation>
+    <Layout home>
+      <PlayerCreation />
     </Layout>
   );
 };

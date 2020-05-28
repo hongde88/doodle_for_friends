@@ -6,6 +6,7 @@ import Image from 'react-bootstrap/Image';
 import Row from 'react-bootstrap/Row';
 import Avatar from '../Avatar/Avatar';
 import styles from './PlayerCreation.module.css';
+import Link from 'next/link';
 
 const NUMBER_OF_AVATARS = 3;
 
@@ -31,7 +32,7 @@ const PlayerCreation = () => {
 
   return (
     <>
-      <div className={styles.avatarDiv}>
+      <div className={`${styles.avatarDiv} justify-content-md-center`}>
         <Image
           src={`images/arrow.png`}
           className={styles.arrow}
@@ -69,9 +70,11 @@ const PlayerCreation = () => {
         </Form.Group>
         <Form.Group as={Row} className='justify-content-md-center'>
           <Col sm='6'>
-            <Button variant='primary' type='submit'>
-              CREATE PRIVATE ROOM
-            </Button>
+            <Link href='/room'>
+              <Button variant='primary' type='submit'>
+                CREATE PRIVATE ROOM
+              </Button>
+            </Link>
           </Col>
         </Form.Group>
       </Form>

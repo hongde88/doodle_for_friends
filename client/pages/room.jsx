@@ -1,7 +1,13 @@
 import React from 'react';
+import Lobby from '../components/Lobby/Lobby';
+import Layout from '../components/Layout/Layout';
 
 const Room = () => {
-  return <h1>Room</h1>;
+  return (
+    <Layout>
+      <Lobby />
+    </Layout>
+  );
 };
 
 export default Room;

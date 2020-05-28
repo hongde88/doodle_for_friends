@@ -2,8 +2,9 @@ import Head from 'next/Head';
 import React from 'react';
 import Container from 'react-bootstrap/Container';
 import Logo from '../Logo/Logo';
+import styles from './Layout.module.css';
 
-const Layout = ({ children }) => {
+const Layout = ({ children, home }) => {
   return (
     <>
       <Head>
@@ -15,9 +16,15 @@ const Layout = ({ children }) => {
         />
         <meta name='og:title' content='Doodle' />
       </Head>
-      <Container fluid>
+      <Container fluid className={styles.container}>
         <header>
-          <Logo />
+          {home ? (
+            <Logo />
+          ) : (
+            <div className={styles.logoDiv}>
+              <Logo />
+            </div>
+          )}
         </header>
         <main>{children}</main>
       </Container>

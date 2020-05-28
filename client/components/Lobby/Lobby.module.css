@@ -1,0 +1,8 @@
+.playersDiv {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.playersDiv > div {
+  padding: 20px;
+}
