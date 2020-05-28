@@ -16,6 +16,11 @@ function connect() {
   socket.on('new message', function (data) {
     addChatMessage(data);
   });
+  socket.on('private', function (data) {
+    document.getElementById(
+      'private'
+    ).innerHTML = `roomId = ${data.roomId} ; word count = ${data.numberOfWords}`;
+  });
   socket.on('old messages', function (data) {
     const messages = data.room;
     for (let i = 0; i < messages.length; i++) {
@@ -46,6 +51,15 @@ function addChatMessage(data) {
   const li = document.createElement('li');
   li.appendChild(document.createTextNode(data.username + ': ' + data.message));
   ul.appendChild(li);
+}
+
+function createPrivateRoom() {
+  socket.emit('private', {
+    username: 'test',
+    rounds: 3,
+    timer: 120,
+    exclusive: true,
+  });
 }
 
 // function connect() {

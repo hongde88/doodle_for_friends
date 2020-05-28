@@ -5,6 +5,7 @@ const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const PORT = process.env.PORT || 5001;
 const EventHandler = require('./event_handler');
+global.defaultWordList = Object.keys(require('./words.json'));
 
 // Init middleware
 app.use(express.json({ extended: false }));
@@ -24,7 +25,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 io.on('connection', (socket) => {
-  console.log('a client has been connected to the server');
+  console.log(`a client ${socket.id} has been connected to the server`);
 
   const eventHandler = new EventHandler(io, socket);
   eventHandler.handleGameEvents();
