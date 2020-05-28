@@ -2,6 +2,10 @@ const nameGenerator = require('fakerator')();
 
 const messageCache = { room: [] };
 
+const rooms = {};
+
+const splitRegEx = /[^ ,]/g;
+
 class EventHandler {
   constructor(io, socket) {
     this.io = io;
@@ -11,6 +15,8 @@ class EventHandler {
   handleGameEvents() {
     const socket = this.socket;
     const io = this.io;
+
+    console.log(defaultWordList.length);
 
     // drawing handler
     socket.on('drawing', this.handleDrawingEvent(socket));
@@ -57,8 +63,36 @@ class EventHandler {
     };
   }
 
-  handlePrivateRoomEvent(socket) {
-    return (data) => {};
+  handlePrivateRoomEvent(io, socket) {
+    return (data) => {
+      socket.username = data.username;
+      rooms[socket.id] = {
+        host: data.username,
+        rounds: data.rounds,
+        timer: data.timer,
+        exclusive: data.exclusive,
+      };
+
+      if (data.words) {
+        const words = data.words.match(splitRegEx);
+        if (data.exclusive) {
+          rooms[socket.id].words = words;
+        } else {
+          rooms[socket.id].words = [...words, ...defaultWordList];
+        }
+      } else {
+        rooms[socket.id].words = defaultWordList;
+      }
+
+      rooms[socket.id].searchRange = rooms[socket.id].words.length - 1;
+
+      io.to(socket.id).emit('private', {
+        roomId: socket.id,
+        numberOfWords: rooms[socket.id].searchRange + 1,
+      });
+
+      console.log(rooms);
+    };
   }
 
   handleStartTimerEvent(io) {
