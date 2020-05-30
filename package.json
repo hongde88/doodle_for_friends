@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/hongde88/skribbl_for_friends#readme",
   "dependencies": {
+    "@reduxjs/toolkit": "^1.3.6",
     "express": "^4.17.1",
     "socket.io": "^2.3.0"
   },

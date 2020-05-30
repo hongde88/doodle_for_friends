@@ -24,7 +24,12 @@ const Room = () => {
       <Col sm={{ span: 7, offset: 1 }}>
         <div className={styles.playersDiv}>
           {players.map((player, idx) => (
-            <Avatar index={player.index} name={player.name} you={idx === 0} />
+            <Avatar
+              key={idx}
+              index={player.index}
+              name={player.name}
+              you={idx === 0}
+            />
           ))}
         </div>
       </Col>
