@@ -1,6 +1,8 @@
 const nameGenerator = require('fakerator')();
 
-const messageCache = { room: [] };
+const randomstring = require('randomstring');
+
+const messageCache = {};
 
 const rooms = {};
 
@@ -25,8 +27,26 @@ class EventHandler {
     // play handler
     socket.on('play', this.handlePlayEvent(socket));
 
-    // private room handler
-    socket.on('private', this.handlePrivateRoomEvent(io, socket));
+    // create private room handler
+    socket.on(
+      'create private room',
+      this.handleCreatePrivateRoomEvent(io, socket)
+    );
+
+    // update private room settings
+    socket.on('update room settings', this.handleUpdateRoomSettings(socket));
+
+    // start private game handler
+    socket.on(
+      'start private game',
+      this.handleStartPrivateGameEvent(io, socket)
+    );
+
+    // join private room handler
+    socket.on('join private room', this.handleJoinPrivateRoomEvent(io, socket));
+
+    // start game handler
+    socket.on('start game', this.handleStartGameEvent(io, socket));
 
     // start timer handler
     socket.on('timer', this.handleStartTimerEvent(io));
@@ -44,12 +64,14 @@ class EventHandler {
 
   handleNewMessageEvent(io, socket) {
     return (data) => {
-      const bundle = {
-        username: socket.username,
-        message: data,
-      };
-      messageCache.room.push(bundle);
-      io.sockets.emit('new message', bundle);
+      // const bundle = {
+      //   username: socket.username,
+      //   message: data,
+      // };
+      const message = `${socket.username}: ${data}`;
+      messageCache[socket.roomId] = messageCache[socket.roomId] || [];
+      messageCache[socket.roomId].push(message);
+      io.to(socket.roomId).emit('new message', message);
     };
   }
 
@@ -64,21 +86,104 @@ class EventHandler {
     };
   }
 
-  handlePrivateRoomEvent(io, socket) {
-    return (data) => {
+  handleCreatePrivateRoomEvent(io, socket) {
+    return (data, callback) => {
+      console.log('in create private room event');
+      const roomId = randomstring.generate(9);
+      socket.roomId = roomId;
+      socket.join(roomId);
+      data.username = data.username || nameGenerator.names.firstName();
       socket.username = data.username;
-      rooms[socket.id] = {
+      rooms[roomId] = {
         host: data.username,
-        rounds: data.rounds,
-        timer: data.timer,
-        exclusive: data.exclusive,
+        hostId: socket.id,
+        maxRound: 3,
+        drawTime: 80,
+        useWordsExclusive: false,
         currentRound: 0,
-        users: [data.username],
+        users: {},
+        gameStarted: false,
+        numUsers: 1,
       };
+
+      rooms[roomId].users[data.username] = 1;
+
+      // rooms[socket.id].maxRound = data.maxRound || 2;
+      // rooms[socket.id].drawTime = data.drawTime || 30;
+      // rooms[socket.id].useWordsExclusive = data.useWordsExclusive;
+
+      // if (data.words) {
+      //   const words = data.words.split(',').map((word) => word.trim());
+      //   if (data.useWordsExclusive) {
+      //     rooms[socket.id].words = words;
+      //   } else {
+      //     rooms[socket.id].words = [...words, ...defaultWordList];
+      //   }
+      // } else {
+      //   rooms[socket.id].words = defaultWordList;
+      // }
+
+      // rooms[socket.id].searchRange = rooms[socket.id].words.length - 1;
+
+      // const randomWords = this.pickRandomWords(
+      //   socket.id,
+      //   rooms[socket.id].searchRange,
+      //   3
+      // );
+
+      const users = Object.keys(rooms[roomId].users).map((user, idx) => {
+        return {
+          name: user,
+          index: idx,
+        };
+      });
+
+      const defaultRoomSettings = {
+        roomId,
+        maxRound: 3,
+        drawTime: 80,
+        useWordsExclusive: false,
+        users,
+      };
+
+      io.to(socket.id).emit('private room created', defaultRoomSettings);
+
+      if (callback) {
+        callback(defaultRoomSettings);
+      }
+
+      console.log(rooms);
+      console.log(socket.roomId);
+      console.log(socket.username);
+      console.log(socket.id);
+    };
+  }
+
+  handleUpdateRoomSettings(socket) {
+    return (data) => {
+      // console.log(socket.id);
+      const roomId = data.roomId || socket.roomId;
+      rooms[roomId].maxRound = data.maxRound;
+      rooms[roomId].drawTime = data.drawTime;
+      rooms[roomId].useWordsExclusive = data.useWordsExclusive;
+
+      socket.to(roomId).emit('room settings updated', {
+        maxRound: data.maxRound,
+        drawTime: data.drawTime,
+        useWordsExclusive: data.useWordsExclusive,
+      });
+    };
+  }
+
+  handleStartPrivateGameEvent(io, socket) {
+    return (data) => {
+      rooms[socket.id].maxRound = data.maxRound || 2;
+      rooms[socket.id].drawTime = data.drawTime || 30;
+      rooms[socket.id].useWordsExclusive = data.useWordsExclusive;
 
       if (data.words) {
         const words = data.words.split(',').map((word) => word.trim());
-        if (data.exclusive) {
+        if (data.useWordsExclusive) {
           rooms[socket.id].words = words;
         } else {
           rooms[socket.id].words = [...words, ...defaultWordList];
@@ -88,20 +193,37 @@ class EventHandler {
       }
 
       rooms[socket.id].searchRange = rooms[socket.id].words.length - 1;
+    };
+  }
 
-      const randomWords = this.pickRandomWords(
-        socket.id,
-        rooms[socket.id].searchRange,
-        3
-      );
-
-      io.to(socket.id).emit('private', {
-        roomId: socket.id,
-        numberOfWords: rooms[socket.id].searchRange + 1,
-        randomWords,
+  handleJoinPrivateRoomEvent(io, socket) {
+    return (data) => {
+      const roomId = data.roomId;
+      const username = data.username || nameGenerator.names.firstName();
+      socket.roomId = roomId;
+      socket.username = username;
+      socket.join(roomId);
+      rooms[roomId].users[username] = 1;
+      rooms[roomId].numUsers++;
+      io.to(roomId).emit('private room joined', {
+        users: Object.keys(rooms[roomId].users),
+      });
+      io.to(socket.id).emit('private room settings', {
+        maxRound: rooms[roomId].maxRound,
+        drawTime: rooms[roomId].drawTime,
+        useWordsExclusive: rooms[roomId].useWordsExclusive,
       });
 
-      console.log(rooms);
+      if (messageCache[socket.roomId])
+        socket.emit('old messages', messageCache[socket.roomId]);
+    };
+  }
+
+  handleStartGameEvent(io, socket) {
+    return () => {
+      const room = rooms[socket.roomId];
+      const maxRound = room.maxRound;
+      const numUsers = room.numUsers;
     };
   }
 
@@ -110,7 +232,7 @@ class EventHandler {
       let countdown = data + 1;
       const interval = setInterval(() => {
         countdown--;
-        io.sockets.emit('timer', { countdown });
+        io.to().emit('timer', { countdown });
         if (countdown === 0) clearInterval(interval);
       }, 1000);
     };
@@ -126,9 +248,22 @@ class EventHandler {
   handleLeaveEvent(socket) {
     return () => {
       console.log('a client has been disconnected to the server');
-      socket.broadcast.emit('leave', {
-        username: socket.username,
-      });
+      const roomId = socket.roomId;
+      const username = socket.username;
+      if (roomId) {
+        if (rooms[roomId] && rooms[roomId].users) {
+          delete rooms[roomId].users[username];
+          rooms[roomId].numUsers--;
+          if (rooms[roomId].numUsers === 0) {
+            delete rooms[roomId];
+            delete messageCache[roomId];
+          }
+          rooms[roomId];
+        }
+        const message = `${username} just left`;
+        messageCache[roomId].push(message);
+        socket.to(roomId).emit('new message', message);
+      }
     };
   }
 
