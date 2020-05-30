@@ -25,7 +25,7 @@ const RoomSettings = () => {
           custom
         >
           {[...Array(9)].map((_, i) => (
-            <option>{i + 2}</option>
+            <option key={`rounds_${i + 2}`}>{i + 2}</option>
           ))}
         </Form.Control>
       </Form.Group>
@@ -39,7 +39,7 @@ const RoomSettings = () => {
           custom
         >
           {[...Array(16)].map((_, i) => (
-            <option>{(i + 3) * 10}</option>
+            <option key={`drawTime_${i + 3}`}>{(i + 3) * 10}</option>
           ))}
         </Form.Control>
       </Form.Group>

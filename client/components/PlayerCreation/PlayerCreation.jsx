@@ -1,20 +1,22 @@
+import Link from 'next/link';
 import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
 import Button from 'react-bootstrap/Button';
-import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import Image from 'react-bootstrap/Image';
-import Row from 'react-bootstrap/Row';
 import Avatar from '../Avatar/Avatar';
 import styles from './PlayerCreation.module.css';
-import Link from 'next/link';
+import { setUser } from '../../store/actions/user';
 
 const NUMBER_OF_AVATARS = 3;
 
 const PlayerCreation = () => {
+  const dispatch = useDispatch();
+
   const [username, setUsername] = useState('');
   const [avatarIndex, setAvatarIndex] = useState(0);
 
-  const leftClick = () => {
+  const prevAvatar = () => {
     if (avatarIndex - 1 < 0) {
       setAvatarIndex(NUMBER_OF_AVATARS - 1);
     } else {
@@ -22,7 +24,7 @@ const PlayerCreation = () => {
     }
   };
 
-  const rightClick = () => {
+  const nextAvatar = () => {
     if (avatarIndex + 1 === NUMBER_OF_AVATARS) {
       setAvatarIndex(0);
     } else {
@@ -31,54 +33,49 @@ const PlayerCreation = () => {
   };
 
   return (
-    <>
-      <div className={`${styles.avatarDiv} justify-content-md-center`}>
+    <div className='d-flex flex-column align-items-center'>
+      <div className={styles.avatarDiv}>
         <Image
           src={`images/arrow.png`}
           className={styles.arrow}
-          onClick={leftClick}
+          onClick={prevAvatar}
         />
         <Avatar index={avatarIndex} />
         <Image
           src={`images/arrow.png`}
           className={`${styles.rightArrow} ${styles.arrow}`}
-          onClick={rightClick}
+          onClick={nextAvatar}
         />
       </div>
       <Form>
-        <Form.Group
-          as={Row}
-          controlId='username'
-          className='justify-content-md-center'
-        >
-          <Col sm='2'>
-            <Form.Control
-              type='username'
-              placeholder='Enter username'
-              value={username}
-              onChange={(e) => setUsername(e.value)}
-            />
-          </Col>
+        <Form.Group controlId='username'>
+          <Form.Control
+            type='username'
+            placeholder='Enter username'
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
         </Form.Group>
 
-        <Form.Group as={Row} className='justify-content-md-center'>
-          <Col sm='4'>
-            <Button variant='primary' type='submit'>
-              PLAY NOW
-            </Button>
-          </Col>
+        <Form.Group>
+          <Button variant='primary' type='submit'>
+            PLAY NOW
+          </Button>
         </Form.Group>
-        <Form.Group as={Row} className='justify-content-md-center'>
-          <Col sm='6'>
-            <Link href='/room'>
-              <Button variant='primary' type='submit'>
-                CREATE PRIVATE ROOM
-              </Button>
-            </Link>
-          </Col>
+
+        <Form.Group>
+          <Link href='/room'>
+            <Button
+              variant='primary'
+              type='submit'
+              onClick={() => dispatch(setUser({ username }))}
+            >
+              CREATE PRIVATE ROOM
+            </Button>
+          </Link>
         </Form.Group>
       </Form>
-    </>
+    </div>
   );
 };
 
