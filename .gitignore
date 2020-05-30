@@ -109,5 +109,8 @@ dist
 # package-lock.json
 package-lock.json
 
+# public folder
+public/
+
 # History
 .history
