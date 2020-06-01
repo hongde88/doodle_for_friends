@@ -1,0 +1,14 @@
+.largeLogo {
+  text-align: center;
+}
+
+.smallLogo > img {
+  width: 250px;
+  height: auto;
+  margin-left: -40px;
+  margin-bottom: 30px;
+}
+
+.smallLogo {
+  text-align: left;
+}

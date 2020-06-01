@@ -247,7 +247,7 @@ class EventHandler {
 
   handleLeaveEvent(socket) {
     return () => {
-      console.log('a client has been disconnected to the server');
+      console.log(`a client ${socket.id} has been disconnected to the server`);
       const roomId = socket.roomId;
       const username = socket.username;
       if (roomId) {
@@ -261,7 +261,9 @@ class EventHandler {
           rooms[roomId];
         }
         const message = `${username} just left`;
-        messageCache[roomId].push(message);
+        if (messageCache[roomId]) {
+          messageCache[roomId].push(message);
+        }
         socket.to(roomId).emit('new message', message);
       }
     };

@@ -1,0 +1,10 @@
+export const CREATE_PRIVATE_ROOM = 'CREATE_PRIVATE_ROOM';
+export const SET_ROOM_LOADING = 'SET_ROOM_LOADING';
+export const SET_ROOM = 'SET_ROOM';
+export const SET_ROOM_ID = 'SET_ROOM_ID';
+
+export const OPEN_SOCKET = 'OPEN_SOCKET';
+
+export const SET_CURRENT_USER = 'SET_CURRENT_USER';
+export const CLEAR_CURRENT_USER = 'CLEAR_CURRENT_USER';
+export const SET_USER_LOADING = 'SET_USER_LOADING';
