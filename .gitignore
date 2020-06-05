@@ -110,7 +110,7 @@ dist
 package-lock.json
 
 # public folder
-public/
+/public/
 
 # History
 .history
