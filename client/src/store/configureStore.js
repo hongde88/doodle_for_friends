@@ -1,8 +1,8 @@
 import { configureStore, getDefaultMiddleware } from '@reduxjs/toolkit';
 
-import rootReducer from '../store/reducers';
-import socketMiddleware from '../store/socketMiddleware';
-import { OPEN_SOCKET } from '../store/actions/types';
+import rootReducer from './reducers';
+import socketMiddleware from './socketMiddleware';
+import { OPEN_SOCKET } from './actions/types';
 
 export default function configureAppStore(preloadedState) {
   const store = configureStore({
