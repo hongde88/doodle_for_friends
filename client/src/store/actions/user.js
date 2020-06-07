@@ -2,6 +2,7 @@ import {
   SET_CURRENT_USER,
   CLEAR_CURRENT_USER,
   SET_USER_LOADING,
+  SET_USER_ERROR,
 } from './types';
 
 export const setCurrentUser = (username) => (dispatch) => {
@@ -14,4 +15,8 @@ export const clearCurrentUser = (username) => (dispatch) => {
 
 export const setUserLoading = (username) => (dispatch) => {
   dispatch({ type: SET_USER_LOADING, payload: username });
+};
+
+export const setError = (data) => (dispatch) => {
+  dispatch({ type: SET_USER_ERROR, payload: data });
 };

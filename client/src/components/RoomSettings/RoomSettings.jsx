@@ -1,13 +1,30 @@
 import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
+import { setRoomSettings } from '../../store/actions/room';
 
 const RoomSettings = () => {
-  const { rounds, drawTime, exclusive } = useSelector((state) => state.room);
+  const dispatch = useDispatch();
+
+  const { maxRound, drawTime, exclusive, playable } = useSelector(
+    (state) => state.room.room
+  );
+  const isHost = useSelector((state) => state.user.user.isHost);
 
   const [customWords, setCustomWords] = useState('');
+
+  const updateRoomSettings = (maxRound, drawTime, words, exclusive) => {
+    dispatch(
+      setRoomSettings({
+        maxRound,
+        drawTime,
+        words,
+        exclusive,
+      })
+    );
+  };
 
   return (
     <Form>
@@ -19,8 +36,11 @@ const RoomSettings = () => {
         <Form.Label>Rounds</Form.Label>
         <Form.Control
           as='select'
-          value={rounds}
-          // onChange={(e) => setRounds(e.value)}
+          value={maxRound}
+          onChange={(e) =>
+            updateRoomSettings(e.target.value, drawTime, customWords, exclusive)
+          }
+          disabled={!isHost}
           custom
         >
           {[...Array(9)].map((_, i) => (
@@ -34,7 +54,10 @@ const RoomSettings = () => {
         <Form.Control
           as='select'
           value={drawTime}
-          // onChange={(e) => setDrawTime(e.value)}
+          onChange={(e) =>
+            updateRoomSettings(maxRound, e.target.value, customWords, exclusive)
+          }
+          disabled={!isHost}
           custom
         >
           {[...Array(16)].map((_, i) => (
@@ -48,8 +71,12 @@ const RoomSettings = () => {
         <Form.Control
           as='textarea'
           value={customWords}
-          onChange={(e) => setCustomWords(e.value)}
+          onChange={(e) => {
+            setCustomWords(e.value);
+            updateRoomSettings(maxRound, drawTime, e.target.value, exclusive);
+          }}
           rows='3'
+          disabled={!isHost}
           placeholder='Enter words separated by a comma; e.g. house,flower,tree,virus,death'
         />
       </Form.Group>
@@ -58,14 +85,24 @@ const RoomSettings = () => {
         <Form.Check
           type='checkbox'
           id='custom-exclusively'
-          value={exclusive}
-          // onChange={(e) => setExclusiveCustom(e.value)}
+          checked={exclusive}
+          disabled={!isHost}
+          onChange={(e) =>
+            updateRoomSettings(
+              maxRound,
+              drawTime,
+              customWords,
+              e.target.checked
+            )
+          }
           label='Use custom words exclusively'
         />
       </Form.Group>
 
       <Form.Group as={Row}>
-        <Button type='submit'>START!</Button>
+        <Button type='submit' disabled={!isHost || (isHost && !playable)}>
+          START!
+        </Button>
       </Form.Group>
     </Form>
   );

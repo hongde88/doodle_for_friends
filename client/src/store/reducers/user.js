@@ -2,11 +2,16 @@ import {
   CLEAR_CURRENT_USER,
   SET_CURRENT_USER,
   SET_USER_LOADING,
+  SET_USER_ERROR,
 } from '../actions/types';
 
 const initialState = {
   loading: false,
-  user: null,
+  user: {
+    name: null,
+    isHost: false,
+    score: 0,
+  },
   errors: {},
 };
 
@@ -17,7 +22,7 @@ export default function (state = initialState, action) {
     case SET_USER_LOADING:
       return {
         loading: true,
-        user: null,
+        user: {},
         errors: {},
       };
     case SET_CURRENT_USER:
@@ -29,7 +34,12 @@ export default function (state = initialState, action) {
     case CLEAR_CURRENT_USER:
       return {
         ...state,
-        user: null,
+        user: {},
+      };
+    case SET_USER_ERROR:
+      return {
+        ...state,
+        errors: action.payload,
       };
     default:
       return state;

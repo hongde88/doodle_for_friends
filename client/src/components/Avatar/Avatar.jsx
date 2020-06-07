@@ -3,7 +3,7 @@ import PropType from 'prop-types';
 import Image from 'react-bootstrap/Image';
 import styles from './Avatar.module.css';
 
-const Avatar = ({ index, name, you }) => {
+const Avatar = ({ index, name, you, host }) => {
   return (
     <div>
       <Image
@@ -12,7 +12,7 @@ const Avatar = ({ index, name, you }) => {
       />
       {name && (
         <h4>
-          {name} {you && '(you)'}
+          {name} {you && '(you)'} {host && '(host)'}
         </h4>
       )}
     </div>
@@ -22,12 +22,14 @@ const Avatar = ({ index, name, you }) => {
 Avatar.defaultProps = {
   index: 0,
   you: false,
+  host: false,
 };
 
 Avatar.propTypes = {
   index: PropType.number,
   name: PropType.string,
   you: PropType.bool,
+  host: PropType.bool,
 };
 
 export default Avatar;

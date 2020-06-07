@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Image from 'react-bootstrap/Image';
+import Alert from 'react-bootstrap/Alert';
 import { useDispatch, useSelector } from 'react-redux';
-import { useHistory, useLocation } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 
-import { createPrivateRoom } from '../../store/actions/room';
+import { createPrivateRoom, joinRoom } from '../../store/actions/room';
 import Avatar from '../Avatar/Avatar';
 import styles from './PlayerCreation.module.css';
 
@@ -19,27 +20,32 @@ const PlayerCreation = () => {
   const [username, setUsername] = useState('');
   const [avatarIndex, setAvatarIndex] = useState(0);
 
-  const roomId = useSelector((state) => state.room.roomId);
-  const user = useSelector((state) => state.user.user);
-
   const history = useHistory();
-  const location = useLocation();
+  const roomId = useSelector((state) => state.room.room.roomId);
+  const navigatedFrom = useSelector((state) => state.room.navigatedFrom);
+  const user = useSelector((state) => state.user.user.name);
+  const errors = {
+    roomError: useSelector((state) => state.room.errors.message),
+    userError: useSelector((state) => state.user.errors.message),
+  };
+
   useEffect(() => {
     if (awaitNav && roomId && user) {
-      if (location.state === undefined || location.state.room === undefined) {
-        console.log(roomId);
+      if (!errors.roomError && !errors.userError) {
         history.push(`/rooms/${roomId}`);
-      } else {
-        console.log(location.state.room);
-        history.push(`/rooms/${location.state.room}`);
       }
     }
-  }, [roomId, user, history, location, awaitNav]);
+  }, [roomId, navigatedFrom, user, history, errors, awaitNav]);
 
   const goToPrivateRoom = () => {
     setAwaitNav(true);
     history.replace('/', {});
-    dispatch(createPrivateRoom(username));
+    dispatch(createPrivateRoom(username, avatarIndex));
+  };
+
+  const joinPublicOrPrivateRoom = () => {
+    setAwaitNav(true);
+    dispatch(joinRoom(username, avatarIndex, roomId || navigatedFrom));
   };
 
   const prevAvatar = () => {
@@ -60,6 +66,9 @@ const PlayerCreation = () => {
 
   return (
     <div className='d-flex flex-column align-items-center'>
+      {(errors.roomError || errors.userError) && (
+        <Alert variant='danger'>{errors.roomError || errors.userError}</Alert>
+      )}
       <div className={styles.avatarDiv}>
         <Image
           src={`/images/arrow.png`}
@@ -84,13 +93,18 @@ const PlayerCreation = () => {
         </Form.Group>
 
         <Form.Group>
-          <Button
-            variant='primary'
-            // onClick={() => dispatch(joinPrivateRoom(username))}
-          >
+          <Button variant='primary' onClick={joinPublicOrPrivateRoom}>
             PLAY NOW
           </Button>
         </Form.Group>
+
+        {(roomId || navigatedFrom) && (
+          <Form.Group>
+            <Button variant='primary' onClick={joinPublicOrPrivateRoom}>
+              JOIN ROOM {roomId || navigatedFrom}
+            </Button>
+          </Form.Group>
+        )}
 
         <Form.Group>
           <Button variant='primary' onClick={goToPrivateRoom}>

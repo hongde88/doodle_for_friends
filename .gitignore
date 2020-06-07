@@ -114,3 +114,6 @@ package-lock.json
 
 # History
 .history
+
+# VSCode Debug Launch Json
+.vscode/

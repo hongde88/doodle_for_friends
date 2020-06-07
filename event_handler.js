@@ -16,8 +16,6 @@ class EventHandler {
     const socket = this.socket;
     const io = this.io;
 
-    console.log(defaultWordList.length);
-
     // drawing handler
     socket.on('drawing', this.handleDrawingEvent(socket));
 
@@ -64,10 +62,6 @@ class EventHandler {
 
   handleNewMessageEvent(io, socket) {
     return (data) => {
-      // const bundle = {
-      //   username: socket.username,
-      //   message: data,
-      // };
       const message = `${socket.username}: ${data}`;
       messageCache[socket.roomId] = messageCache[socket.roomId] || [];
       messageCache[socket.roomId].push(message);
@@ -88,90 +82,78 @@ class EventHandler {
 
   handleCreatePrivateRoomEvent(io, socket) {
     return (data, callback) => {
-      console.log('in create private room event');
       const roomId = randomstring.generate(9);
       socket.roomId = roomId;
       socket.join(roomId);
       data.username = data.username || nameGenerator.names.firstName();
       socket.username = data.username;
+      const avatarIndex = data.avatarIndex || 0;
       rooms[roomId] = {
         host: data.username,
-        hostId: socket.id,
         maxRound: 3,
         drawTime: 80,
-        useWordsExclusive: false,
+        exclusive: false,
         currentRound: 0,
         users: {},
         gameStarted: false,
         numUsers: 1,
       };
 
-      rooms[roomId].users[data.username] = 1;
+      rooms[roomId].users[data.username] = avatarIndex;
 
-      // rooms[socket.id].maxRound = data.maxRound || 2;
-      // rooms[socket.id].drawTime = data.drawTime || 30;
-      // rooms[socket.id].useWordsExclusive = data.useWordsExclusive;
+      const users = this.generateUserList(roomId);
 
-      // if (data.words) {
-      //   const words = data.words.split(',').map((word) => word.trim());
-      //   if (data.useWordsExclusive) {
-      //     rooms[socket.id].words = words;
-      //   } else {
-      //     rooms[socket.id].words = [...words, ...defaultWordList];
-      //   }
-      // } else {
-      //   rooms[socket.id].words = defaultWordList;
-      // }
-
-      // rooms[socket.id].searchRange = rooms[socket.id].words.length - 1;
-
-      // const randomWords = this.pickRandomWords(
-      //   socket.id,
-      //   rooms[socket.id].searchRange,
-      //   3
-      // );
-
-      const users = Object.keys(rooms[roomId].users).map((user, idx) => {
-        return {
-          name: user,
-          index: idx,
-        };
-      });
+      const numUsers = rooms[roomId].numUsers;
 
       const defaultRoomSettings = {
         roomId,
         maxRound: 3,
         drawTime: 80,
-        useWordsExclusive: false,
+        exclusive: false,
         users,
+        numUsers,
+        host: data.username,
+        gameStarted: false,
+        playable: false,
       };
-
-      io.to(socket.id).emit('private room created', defaultRoomSettings);
 
       if (callback) {
         callback(defaultRoomSettings);
       }
-
-      console.log(rooms);
-      console.log(socket.roomId);
-      console.log(socket.username);
-      console.log(socket.id);
     };
   }
 
   handleUpdateRoomSettings(socket) {
-    return (data) => {
-      // console.log(socket.id);
+    return (data, callback) => {
       const roomId = data.roomId || socket.roomId;
       rooms[roomId].maxRound = data.maxRound;
       rooms[roomId].drawTime = data.drawTime;
-      rooms[roomId].useWordsExclusive = data.useWordsExclusive;
+      rooms[roomId].exclusive = data.exclusive;
 
-      socket.to(roomId).emit('room settings updated', {
+      if (data.words) {
+        const words = data.words.split(',').map((word) => word.trim());
+        if (data.exclusive) {
+          rooms[roomId].words = words;
+        } else {
+          rooms[roomId].words = [...words, ...defaultWordList];
+        }
+      } else {
+        rooms[roomId].words = defaultWordList;
+      }
+
+      rooms[roomId].searchRange = rooms[roomId].words.length - 1;
+
+      const newSettings = {
         maxRound: data.maxRound,
         drawTime: data.drawTime,
-        useWordsExclusive: data.useWordsExclusive,
-      });
+        exclusive: data.exclusive,
+      };
+
+      socket.to(roomId).emit('room settings updated', newSettings);
+
+      if (callback) {
+        callback(newSettings);
+      }
     };
   }
 
@@ -197,22 +179,60 @@ class EventHandler {
   }
 
   handleJoinPrivateRoomEvent(io, socket) {
-    return (data) => {
+    return (data, callback) => {
       const roomId = data.roomId;
-      const username = data.username || nameGenerator.names.firstName();
+      const avatarIndex = data.avatarIndex;
+
+      if (!roomId || !rooms[roomId]) {
+        if (callback) {
+          return callback({
+            type: 'room error',
+            message: 'room does not exist',
+          });
+        } else {
+          return socket.emit('room does not exist');
+        }
+      }
+
+      let username = data.username;
+      if (!username) {
+        username = nameGenerator.names.firstName();
+      } else {
+        if (rooms[roomId].users.hasOwnProperty(username)) {
+          if (callback) {
+            return callback({
+              type: 'user error',
+              message: 'name already exists',
+            });
+          } else {
+            return socket.emit('name exists');
+          }
+        }
+      }
+
       socket.roomId = roomId;
       socket.username = username;
       socket.join(roomId);
-      rooms[roomId].users[username] = 1;
+      rooms[roomId].users[username] = avatarIndex;
       rooms[roomId].numUsers++;
       io.to(roomId).emit('private room joined', {
-        users: Object.keys(rooms[roomId].users),
-      });
-      io.to(socket.id).emit('private room settings', {
+        users: this.generateUserList(roomId),
         maxRound: rooms[roomId].maxRound,
         drawTime: rooms[roomId].drawTime,
-        useWordsExclusive: rooms[roomId].useWordsExclusive,
+        exclusive: rooms[roomId].exclusive,
+        roomId,
+        playable: rooms[roomId].numUsers > 1,
+        host: rooms[roomId].host,
+        gameStarted: rooms[roomId].gameStarted,
+        numUsers: rooms[roomId].numUsers,
       });
+
+      if (callback) {
+        callback({
+          username,
+          isHost: username === rooms[roomId].host,
+        });
+      }
 
       if (messageCache[socket.roomId])
         socket.emit('old messages', messageCache[socket.roomId]);
@@ -247,7 +267,6 @@ class EventHandler {
 
   handleLeaveEvent(socket) {
     return () => {
-      console.log(`a client ${socket.id} has been disconnected to the server`);
       const roomId = socket.roomId;
       const username = socket.username;
       if (roomId) {
@@ -257,9 +276,18 @@ class EventHandler {
           if (rooms[roomId].numUsers === 0) {
             delete rooms[roomId];
             delete messageCache[roomId];
+            return;
+          } else {
+            if (username === rooms[roomId].host) {
+              rooms[roomId].host = Object.keys(rooms[roomId].users)[0];
+            }
           }
-          rooms[roomId];
         }
+        socket.to(roomId).emit('user left', {
+          host: rooms[roomId].host,
+          playable: rooms[roomId].numUsers > 1,
+          users: this.generateUserList(roomId),
+        });
         const message = `${username} just left`;
         if (messageCache[roomId]) {
           messageCache[roomId].push(message);
@@ -281,22 +309,10 @@ class EventHandler {
 
     const wordList = rooms[roomId].words;
     for (let i = 0; i < wordCount; i++) {
-      console.log(
-        `random idx ${randomIndexes[i]} = ${wordList[randomIndexes[i]]}`
-      );
-      console.log(
-        `search range idx ${searchRange - i} = ${wordList[searchRange - i]}`
-      );
       [wordList[randomIndexes[i]], wordList[searchRange - i]] = [
         wordList[searchRange - i],
         wordList[randomIndexes[i]],
       ];
-      console.log(
-        `random idx ${randomIndexes[i]} = ${wordList[randomIndexes[i]]}`
-      );
-      console.log(
-        `search range idx ${searchRange - i} = ${wordList[searchRange - i]}`
-      );
     }
 
     return randomWords;
@@ -304,6 +320,17 @@ class EventHandler {
 
   generateRandomNumber(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  generateUserList(roomId) {
+    const users = Object.keys(rooms[roomId].users).map((user) => {
+      return {
+        name: user,
+        index: rooms[roomId].users[user],
+      };
+    });
+
+    return users;
   }
 }
 
