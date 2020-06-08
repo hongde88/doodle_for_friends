@@ -10,6 +10,10 @@ import {
   SET_ROOM_SETTINGS,
   SET_ROOM_ON_SETTINGS_UPDATED,
   SET_ROOM_ON_USER_LEFT,
+  SEND_MESSAGE_TO_ROOM,
+  RECEIVE_MESSAGE_FROM_ROOM,
+  RECEIVE_OLD_MESSAGES_FROM_ROOM,
+  START_ROOM_TIMER,
 } from './types';
 
 export const createPrivateRoom = (username, avatarIndex) => (dispatch) => {
@@ -56,4 +60,20 @@ export const setRoomOnSettingsUpdated = (data) => (dispatch) => {
 
 export const setRoomOnUserLeft = (data) => (dispatch) => {
   dispatch({ type: SET_ROOM_ON_USER_LEFT, payload: data });
+};
+
+export const sendMessageToRoom = (data) => (dispatch) => {
+  dispatch({ type: SEND_MESSAGE_TO_ROOM, payload: data });
+};
+
+export const receiveMessageFromRoom = (data) => (dispatch) => {
+  dispatch({ type: RECEIVE_MESSAGE_FROM_ROOM, payload: data });
+};
+
+export const receiveOldMessagesFromRoom = (data) => (dispatch) => {
+  dispatch({ type: RECEIVE_OLD_MESSAGES_FROM_ROOM, payload: data });
+};
+
+export const startRoomTimer = (data) => (dispatch) => {
+  dispatch({ type: START_ROOM_TIMER, payload: data });
 };

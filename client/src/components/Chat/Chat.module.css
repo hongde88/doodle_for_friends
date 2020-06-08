@@ -1,0 +1,28 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  border: 1px solid black;
+  background: lightgray;
+  height: 480px;
+}
+
+.messages {
+  overflow-y: scroll;
+  overflow-x: hidden;
+  flex-grow: 1;
+  padding: 20px;
+}
+
+.chat-input {
+  position: relative;
+  overflow: hidden;
+  padding: 0 40px;
+  flex-shrink: 0;
+}
+
+.chat-input input[type='text'] {
+  width: 100%;
+  margin-left: -20px;
+  margin-right: -20px;
+}

@@ -7,12 +7,17 @@ import Col from 'react-bootstrap/Col';
 import Avatar from '../Avatar/Avatar';
 import styles from './Lobby.module.css';
 import { clearCurrentUser } from '../../store/actions/user';
-import { setRoomNavigatedFrom } from '../../store/actions/room';
+import { setRoomNavigatedFrom, startRoomTimer } from '../../store/actions/room';
+import Chat from '../Chat/Chat';
+import Timer from '../Timer/Timer';
+import Button from 'react-bootstrap/Button';
 
 const Lobby = () => {
   const { id } = useParams();
   const user = useSelector((state) => state.user.user.name);
   const players = useSelector((state) => state.room.room.users);
+  const duration = useSelector((state) => state.room.room.drawTime);
+  const roomId = useSelector((state) => state.room.room.roomId);
 
   const dispatch = useDispatch();
   useEffect(() => {
@@ -34,28 +39,44 @@ const Lobby = () => {
     );
   }
 
+  const startTimer = () => {
+    console.log(duration);
+    dispatch(startRoomTimer({ duration, roomId }));
+  };
+
   return (
-    <>
-      <Row>
-        <Col sm='4'>
-          <RoomSettings />
-        </Col>
-        <Col sm={{ span: 7, offset: 1 }}>
-          <div className={styles.playersDiv}>
-            {players.map((player, idx) => (
-              <Avatar
-                key={idx}
-                index={player.index}
-                name={player.name}
-                host={idx === 0}
-                you={player.name === user}
-              />
-            ))}
-          </div>
-        </Col>
-      </Row>
-      <Row>Room Id: {window.location.href}</Row>
-    </>
+    <Row>
+      <Col md='8'>
+        <Row>
+          <Col md='4'>
+            <RoomSettings />
+          </Col>
+          <Col md={{ span: 7, offset: 1 }}>
+            <div className={styles.playersDiv}>
+              {players.map((player, idx) => (
+                <Avatar
+                  key={idx}
+                  index={player.index}
+                  name={player.name}
+                  host={idx === 0}
+                  you={player.name === user}
+                />
+              ))}
+            </div>
+          </Col>
+        </Row>
+        <Row>Room Id: {window.location.href}</Row>
+      </Col>
+      <Col md='2'>
+        <Chat />
+      </Col>
+      <Col md='2'>
+        <Timer startTime={duration} />
+        <Button variant='primary' onClick={startTimer}>
+          Start Timer
+        </Button>
+      </Col>
+    </Row>
   );
 };
 

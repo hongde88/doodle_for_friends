@@ -3,6 +3,7 @@ import {
   CLEAR_CURRENT_USER,
   SET_USER_LOADING,
   SET_USER_ERROR,
+  SET_USER_ON_USER_LEFT,
 } from './types';
 
 export const setCurrentUser = (username) => (dispatch) => {
@@ -19,4 +20,8 @@ export const setUserLoading = (username) => (dispatch) => {
 
 export const setError = (data) => (dispatch) => {
   dispatch({ type: SET_USER_ERROR, payload: data });
+};
+
+export const setUserOnUserLeft = (data) => (dispatch) => {
+  dispatch({ type: SET_USER_ON_USER_LEFT, payload: data });
 };

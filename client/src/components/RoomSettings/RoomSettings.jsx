@@ -38,7 +38,12 @@ const RoomSettings = () => {
           as='select'
           value={maxRound}
           onChange={(e) =>
-            updateRoomSettings(e.target.value, drawTime, customWords, exclusive)
+            updateRoomSettings(
+              parseInt(e.target.value, 10),
+              drawTime,
+              customWords,
+              exclusive
+            )
           }
           disabled={!isHost}
           custom
@@ -55,7 +60,12 @@ const RoomSettings = () => {
           as='select'
           value={drawTime}
           onChange={(e) =>
-            updateRoomSettings(maxRound, e.target.value, customWords, exclusive)
+            updateRoomSettings(
+              maxRound,
+              parseInt(e.target.value, 10),
+              customWords,
+              exclusive
+            )
           }
           disabled={!isHost}
           custom

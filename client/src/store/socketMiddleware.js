@@ -4,6 +4,8 @@ import {
   CREATE_PRIVATE_ROOM,
   JOIN_ROOM,
   SET_ROOM_SETTINGS,
+  SEND_MESSAGE_TO_ROOM,
+  START_ROOM_TIMER,
 } from './actions/types';
 import {
   setRoom,
@@ -12,11 +14,14 @@ import {
   setError as setRoomError,
   setRoomOnSettingsUpdated,
   setRoomOnUserLeft,
+  receiveMessageFromRoom,
+  receiveOldMessagesFromRoom,
 } from './actions/room';
 import {
   setCurrentUser,
   setUserLoading,
   setError as setUserError,
+  setUserOnUserLeft,
 } from './actions/user';
 
 const URL = 'http://localhost:5001';
@@ -35,6 +40,23 @@ const socketMiddleware = (store) => (next) => async (action) => {
         });
         socket.on('user left', (data) => {
           store.dispatch(setRoomOnUserLeft(data));
+          store.dispatch(
+            setUserOnUserLeft({
+              newHost: data.host,
+            })
+          );
+        });
+        socket.on('new message', (data) => {
+          store.dispatch(receiveMessageFromRoom(data));
+        });
+        socket.on('old messages', (data) => {
+          store.dispatch(receiveOldMessagesFromRoom(data));
+        });
+        socket.on('timer', (data) => {
+          store.dispatch({
+            type: 'RECEIVE_ROOM_REMAINING_TIME',
+            payload: data.remainingTime,
+          });
         });
       }
       break;
@@ -101,6 +123,16 @@ const socketMiddleware = (store) => (next) => async (action) => {
         socket.emit('update room settings', action.payload, (data) => {
           store.dispatch(setRoomOnSettingsUpdated(action.payload));
         });
+      }
+      break;
+    case SEND_MESSAGE_TO_ROOM:
+      if (socket) {
+        socket.emit('new message', action.payload);
+      }
+      break;
+    case START_ROOM_TIMER:
+      if (socket) {
+        socket.emit('timer', action.payload);
       }
       break;
     default:

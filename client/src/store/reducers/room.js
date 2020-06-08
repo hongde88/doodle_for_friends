@@ -7,12 +7,18 @@ import {
   SET_ROOM_NAVIGATED_FROM,
   SET_ROOM_ON_SETTINGS_UPDATED,
   SET_ROOM_ON_USER_LEFT,
+  RECEIVE_MESSAGE_FROM_ROOM,
+  RECEIVE_OLD_MESSAGES_FROM_ROOM,
+  RECEIVE_ROOM_REMAINING_TIME,
 } from '../actions/types';
 
 const initialState = {
   loading: false,
   room: {},
   navigatedFrom: null,
+  currentMessage: null,
+  oldMessages: null,
+  remainingTime: null,
   errors: {},
 };
 
@@ -60,6 +66,24 @@ export default function (state = initialState, action) {
         },
         navigatedFrom: null,
         errors: action.payload,
+      };
+    case RECEIVE_MESSAGE_FROM_ROOM:
+      return {
+        ...state,
+        currentMessage: {
+          content: action.payload,
+          timestamp: Date.now(),
+        },
+      };
+    case RECEIVE_OLD_MESSAGES_FROM_ROOM:
+      return {
+        ...state,
+        oldMessages: action.payload,
+      };
+    case RECEIVE_ROOM_REMAINING_TIME:
+      return {
+        ...state,
+        remainingTime: action.payload,
       };
     default:
       return state;

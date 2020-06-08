@@ -3,6 +3,7 @@ import {
   SET_CURRENT_USER,
   SET_USER_LOADING,
   SET_USER_ERROR,
+  SET_USER_ON_USER_LEFT,
 } from '../actions/types';
 
 const initialState = {
@@ -40,6 +41,15 @@ export default function (state = initialState, action) {
       return {
         ...state,
         errors: action.payload,
+      };
+    case SET_USER_ON_USER_LEFT:
+      return {
+        ...state,
+        loading: false,
+        user: {
+          ...state.user,
+          isHost: state.user.name === action.payload.newHost,
+        },
       };
     default:
       return state;
