@@ -7,7 +7,7 @@ import 'react-circular-progressbar/dist/styles.css';
 const Timer = ({ startTime }) => {
   const remainingTime = useSelector((state) => state.room.remainingTime);
   return (
-    <div style={{ width: 80, height: 80 }}>
+    <div style={{ width: 60, height: 'auto' }}>
       <CircularProgressbar
         value={remainingTime || startTime}
         text={`${

@@ -1,14 +1,13 @@
-.largeLogo {
-  text-align: center;
-}
-
-.smallLogo > img {
-  width: 250px;
-  height: auto;
-  margin-left: -40px;
+.small-logo > img {
+  width: auto;
+  height: 50px;
   margin-bottom: 30px;
 }
 
-.smallLogo {
+.small-logo {
   text-align: left;
+}
+
+.room-container {
+  height: 100%;
 }

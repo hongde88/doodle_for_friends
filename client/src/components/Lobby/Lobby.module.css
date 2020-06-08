@@ -6,3 +6,17 @@
 .playersDiv > div {
   padding: 20px;
 }
+
+.lobbyContainer {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.copyRoomId {
+  padding: 20px;
+}
+.copyRoomId button {
+  margin-left: 20px;
+}

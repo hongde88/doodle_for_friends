@@ -1,0 +1,18 @@
+.playersDiv {
+  padding: 30px 0px;
+}
+
+.playerDiv,
+.avatarDiv {
+  display: flex;
+  align-items: center;
+}
+
+.rankDiv {
+  margin-right: 10px;
+}
+
+.nameAndScoreDiv {
+  display: flex;
+  flex-direction: column;
+}

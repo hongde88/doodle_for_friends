@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
-import Row from 'react-bootstrap/Row';
+import { useDispatch, useSelector } from 'react-redux';
+import { Link } from 'react-router-dom';
 import { setRoomSettings } from '../../store/actions/room';
 
 const RoomSettings = () => {
@@ -12,6 +12,7 @@ const RoomSettings = () => {
     (state) => state.room.room
   );
   const isHost = useSelector((state) => state.user.user.isHost);
+  const roomId = useSelector((state) => state.room.room.roomId);
 
   const [customWords, setCustomWords] = useState('');
 
@@ -28,11 +29,11 @@ const RoomSettings = () => {
 
   return (
     <Form>
-      <Form.Group as={Row}>
+      <Form.Group>
         <h3>Game settings</h3>
       </Form.Group>
 
-      <Form.Group as={Row} controlId='rounds'>
+      <Form.Group controlId='rounds'>
         <Form.Label>Rounds</Form.Label>
         <Form.Control
           as='select'
@@ -54,7 +55,7 @@ const RoomSettings = () => {
         </Form.Control>
       </Form.Group>
 
-      <Form.Group as={Row} controlId='drawTime'>
+      <Form.Group controlId='drawTime'>
         <Form.Label>Draw time in seconds</Form.Label>
         <Form.Control
           as='select'
@@ -76,7 +77,7 @@ const RoomSettings = () => {
         </Form.Control>
       </Form.Group>
 
-      <Form.Group as={Row} controlId='customWords'>
+      <Form.Group controlId='customWords'>
         <Form.Label>Custom Words</Form.Label>
         <Form.Control
           as='textarea'
@@ -91,7 +92,7 @@ const RoomSettings = () => {
         />
       </Form.Group>
 
-      <Form.Group as={Row} controlId='exclusive'>
+      <Form.Group controlId='exclusive'>
         <Form.Check
           type='checkbox'
           id='custom-exclusively'
@@ -109,11 +110,13 @@ const RoomSettings = () => {
         />
       </Form.Group>
 
-      <Form.Group as={Row}>
-        <Button type='submit' disabled={!isHost || (isHost && !playable)}>
-          START!
-        </Button>
+      {/* {isHost && playable && ( */}
+      <Form.Group>
+        <Link to={`/rooms/${roomId}/game`}>
+          <Button>START!</Button>
+        </Link>
       </Form.Group>
+      {/* )} */}
     </Form>
   );
 };
