@@ -47,7 +47,7 @@ class EventHandler {
     socket.on('start game', this.handleStartGameEvent(io, socket));
 
     // start timer handler
-    socket.on('timer', this.handleStartTimerEvent(io));
+    socket.on('timer', this.handleStartTimerEvent(io, socket));
 
     // select word handler
     socket.on('select word', this.handleSelectWordEvent(socket));
@@ -62,10 +62,13 @@ class EventHandler {
 
   handleNewMessageEvent(io, socket) {
     return (data) => {
-      const message = `${socket.username}: ${data}`;
-      messageCache[socket.roomId] = messageCache[socket.roomId] || [];
-      messageCache[socket.roomId].push(message);
-      io.to(socket.roomId).emit('new message', message);
+      const username = data.username || socket.username;
+      const roomId = data.roomId || socket.roomId;
+      if (!rooms[roomId]) return;
+      const message = `${username}: ${data.message}`;
+      messageCache[roomId] = messageCache[roomId] || [];
+      messageCache[roomId].push(message);
+      io.to(roomId).emit('new message', message);
     };
   }
 
@@ -126,6 +129,9 @@ class EventHandler {
   handleUpdateRoomSettings(socket) {
     return (data, callback) => {
       const roomId = data.roomId || socket.roomId;
+
+      if (!rooms[roomId]) return;
+
       rooms[roomId].maxRound = data.maxRound;
       rooms[roomId].drawTime = data.drawTime;
       rooms[roomId].exclusive = data.exclusive;
@@ -247,13 +253,15 @@ class EventHandler {
     };
   }
 
-  handleStartTimerEvent(io) {
+  handleStartTimerEvent(io, socket) {
     return (data) => {
-      let countdown = data + 1;
+      const roomId = data.roomId || socket.roomId;
+      let remainingTime = data.duration + 1;
+      console.log(remainingTime);
       const interval = setInterval(() => {
-        countdown--;
-        io.to().emit('timer', { countdown });
-        if (countdown === 0) clearInterval(interval);
+        remainingTime--;
+        io.to(roomId).emit('timer', { remainingTime });
+        if (remainingTime === 0) clearInterval(interval);
       }, 1000);
     };
   }
@@ -288,7 +296,7 @@ class EventHandler {
           playable: rooms[roomId].numUsers > 1,
           users: this.generateUserList(roomId),
         });
-        const message = `${username} just left`;
+        const message = `${username} just left.`;
         if (messageCache[roomId]) {
           messageCache[roomId].push(message);
         }
