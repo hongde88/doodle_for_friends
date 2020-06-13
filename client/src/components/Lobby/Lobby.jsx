@@ -6,24 +6,33 @@ import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { useDispatch, useSelector } from 'react-redux';
 import { Redirect, useParams } from 'react-router-dom';
 import { setRoomNavigatedFrom } from '../../store/actions/room';
-import { clearCurrentUser } from '../../store/actions/user';
+import { useHistory } from 'react-router-dom';
 import Avatar from '../Avatar/Avatar';
 import RoomSettings from '../RoomSettings/RoomSettings';
 import styles from './Lobby.module.css';
 
 const Lobby = () => {
+  const history = useHistory();
   const { id } = useParams();
   const user = useSelector((state) => state.user.user.name);
   const players = useSelector((state) => state.room.room.users);
+  const gameStarted = useSelector((state) => state.room.gameStarted);
+  const roomId = useSelector((state) => state.room.room.roomId);
 
   const [copied, setCopied] = useState(false);
 
   const dispatch = useDispatch();
+  // useEffect(() => {
+  //   return () => {
+  //     dispatch(clearCurrentUser());
+  //   };
+  // }, [dispatch]);
+
   useEffect(() => {
-    return () => {
-      dispatch(clearCurrentUser());
-    };
-  }, [dispatch]);
+    if (gameStarted) {
+      history.push(`/rooms/${roomId}/game`);
+    }
+  }, [gameStarted]);
 
   if (!user) {
     if (id) {

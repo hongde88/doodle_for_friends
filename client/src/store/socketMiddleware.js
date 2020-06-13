@@ -6,6 +6,8 @@ import {
   SET_ROOM_SETTINGS,
   SEND_MESSAGE_TO_ROOM,
   START_ROOM_TIMER,
+  SEND_ROOM_DRAWING_INFO,
+  START_PRIVATE_GAME,
 } from './actions/types';
 import {
   setRoom,
@@ -16,6 +18,9 @@ import {
   setRoomOnUserLeft,
   receiveMessageFromRoom,
   receiveOldMessagesFromRoom,
+  receiveRoomRemainingTime,
+  receiveRoomDrawingInfo,
+  setGameStarted,
 } from './actions/room';
 import {
   setCurrentUser,
@@ -53,10 +58,17 @@ const socketMiddleware = (store) => (next) => async (action) => {
           store.dispatch(receiveOldMessagesFromRoom(data));
         });
         socket.on('timer', (data) => {
-          store.dispatch({
-            type: 'RECEIVE_ROOM_REMAINING_TIME',
-            payload: data.remainingTime,
-          });
+          // store.dispatch({
+          //   type: 'RECEIVE_ROOM_REMAINING_TIME',
+          //   payload: data.remainingTime,
+          // });
+          store.dispatch(receiveRoomRemainingTime(data.remainingTime));
+        });
+        socket.on('drawing', (data) => {
+          store.dispatch(receiveRoomDrawingInfo(data));
+        });
+        socket.on('private game started', () => {
+          store.dispatch(setGameStarted());
         });
       }
       break;
@@ -133,6 +145,16 @@ const socketMiddleware = (store) => (next) => async (action) => {
     case START_ROOM_TIMER:
       if (socket) {
         socket.emit('timer', action.payload);
+      }
+      break;
+    case SEND_ROOM_DRAWING_INFO:
+      if (socket) {
+        socket.emit('drawing', action.payload);
+      }
+      break;
+    case START_PRIVATE_GAME:
+      if (socket) {
+        socket.emit('start private game');
       }
       break;
     default:

@@ -1,0 +1,14 @@
+.panel {
+  /* text-align: center; */
+  display: table;
+  background-color: black;
+  width: 100%;
+  height: 100%;
+}
+
+h2 {
+  text-align: center;
+  display: table-cell;
+  vertical-align: middle;
+  color: white;
+}

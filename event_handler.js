@@ -26,25 +26,16 @@ class EventHandler {
     socket.on('play', this.handlePlayEvent(socket));
 
     // create private room handler
-    socket.on(
-      'create private room',
-      this.handleCreatePrivateRoomEvent(io, socket)
-    );
+    socket.on('create private room', this.handleCreatePrivateRoomEvent(socket));
 
     // update private room settings
     socket.on('update room settings', this.handleUpdateRoomSettings(socket));
 
     // start private game handler
-    socket.on(
-      'start private game',
-      this.handleStartPrivateGameEvent(io, socket)
-    );
+    socket.on('start private game', this.handleStartPrivateGameEvent(socket));
 
     // join private room handler
     socket.on('join private room', this.handleJoinPrivateRoomEvent(io, socket));
-
-    // start game handler
-    socket.on('start game', this.handleStartGameEvent(io, socket));
 
     // start timer handler
     socket.on('timer', this.handleStartTimerEvent(io, socket));
@@ -52,8 +43,14 @@ class EventHandler {
     // select word handler
     socket.on('select word', this.handleSelectWordEvent(socket));
 
+    // disconnect handler
+    socket.on(
+      'disconnect',
+      this.handleDisconnectOrLeaveEvent(socket, 'disconnect')
+    );
+
     // leave handler
-    socket.on('disconnect', this.handleLeaveEvent(socket));
+    socket.on('leave', this.handleDisconnectOrLeaveEvent(socket, 'leave'));
   }
 
   handleDrawingEvent(socket) {
@@ -83,7 +80,7 @@ class EventHandler {
     };
   }
 
-  handleCreatePrivateRoomEvent(io, socket) {
+  handleCreatePrivateRoomEvent(socket) {
     return (data, callback) => {
       const roomId = randomstring.generate(9);
       socket.roomId = roomId;
@@ -102,7 +99,9 @@ class EventHandler {
         numUsers: 1,
       };
 
-      rooms[roomId].users[data.username] = avatarIndex;
+      rooms[roomId].users[data.username] = { avatarIndex, id: socket.id };
+
+      messageCache[roomId] = [];
 
       const users = this.generateUserList(roomId);
 
@@ -163,24 +162,14 @@ class EventHandler {
     };
   }
 
-  handleStartPrivateGameEvent(io, socket) {
-    return (data) => {
-      rooms[socket.id].maxRound = data.maxRound || 2;
-      rooms[socket.id].drawTime = data.drawTime || 30;
-      rooms[socket.id].useWordsExclusive = data.useWordsExclusive;
-
-      if (data.words) {
-        const words = data.words.split(',').map((word) => word.trim());
-        if (data.useWordsExclusive) {
-          rooms[socket.id].words = words;
-        } else {
-          rooms[socket.id].words = [...words, ...defaultWordList];
-        }
-      } else {
-        rooms[socket.id].words = defaultWordList;
+  handleStartPrivateGameEvent(socket) {
+    return () => {
+      const roomId = socket.roomId;
+      if (rooms[roomId]) {
+        rooms[roomId].currentRound = 1;
+        rooms[roomId].currentPlayer;
+        socket.to(roomId).emit('private game started');
       }
-
-      rooms[socket.id].searchRange = rooms[socket.id].words.length - 1;
     };
   }
 
@@ -219,7 +208,7 @@ class EventHandler {
       socket.roomId = roomId;
       socket.username = username;
       socket.join(roomId);
-      rooms[roomId].users[username] = avatarIndex;
+      rooms[roomId].users[username] = { avatarIndex, id: socket.id };
       rooms[roomId].numUsers++;
       io.to(roomId).emit('private room joined', {
         users: this.generateUserList(roomId),
@@ -245,14 +234,6 @@ class EventHandler {
     };
   }
 
-  handleStartGameEvent(io, socket) {
-    return () => {
-      const room = rooms[socket.roomId];
-      const maxRound = room.maxRound;
-      const numUsers = room.numUsers;
-    };
-  }
-
   handleStartTimerEvent(io, socket) {
     return (data) => {
       const roomId = data.roomId || socket.roomId;
@@ -273,8 +254,15 @@ class EventHandler {
     };
   }
 
-  handleLeaveEvent(socket) {
+  handleDisconnectOrLeaveEvent(socket, type) {
     return () => {
+      if (type === 'disconnect') {
+        console.log(
+          `a client ${socket.id} has been disconnected from the server`
+        );
+      } else {
+        console.log(`a client ${socket.id} has left the room ${socket.roomId}`);
+      }
       const roomId = socket.roomId;
       const username = socket.username;
       if (roomId) {
@@ -291,16 +279,22 @@ class EventHandler {
             }
           }
         }
-        socket.to(roomId).emit('user left', {
-          host: rooms[roomId].host,
-          playable: rooms[roomId].numUsers > 1,
-          users: this.generateUserList(roomId),
-        });
-        const message = `${username} just left.`;
-        if (messageCache[roomId]) {
-          messageCache[roomId].push(message);
+
+        if (rooms[roomId]) {
+          socket.to(roomId).emit('user left', {
+            host: rooms[roomId].host,
+            playable: rooms[roomId].numUsers > 1,
+            users: this.generateUserList(roomId),
+          });
+          const message = `${username} just left.`;
+          if (messageCache[roomId]) {
+            messageCache[roomId].push(message);
+          }
+          socket.to(roomId).emit('new message', message);
         }
-        socket.to(roomId).emit('new message', message);
+
+        socket.leave(roomId);
+        socket.roomId = null;
       }
     };
   }
@@ -334,7 +328,7 @@ class EventHandler {
     const users = Object.keys(rooms[roomId].users).map((user) => {
       return {
         name: user,
-        index: rooms[roomId].users[user],
+        index: rooms[roomId].users[user].avatarIndex,
       };
     });
 

@@ -10,6 +10,8 @@ import {
   RECEIVE_MESSAGE_FROM_ROOM,
   RECEIVE_OLD_MESSAGES_FROM_ROOM,
   RECEIVE_ROOM_REMAINING_TIME,
+  RECEIVE_ROOM_DRAWING_INFO,
+  SET_GAME_STARTED,
 } from '../actions/types';
 
 const initialState = {
@@ -19,6 +21,7 @@ const initialState = {
   currentMessage: null,
   oldMessages: null,
   remainingTime: null,
+  drawingInfo: null,
   errors: {},
 };
 
@@ -84,6 +87,16 @@ export default function (state = initialState, action) {
       return {
         ...state,
         remainingTime: action.payload,
+      };
+    case RECEIVE_ROOM_DRAWING_INFO:
+      return {
+        ...state,
+        drawingInfo: action.payload,
+      };
+    case SET_GAME_STARTED:
+      return {
+        ...state,
+        gameStarted: true,
       };
     default:
       return state;

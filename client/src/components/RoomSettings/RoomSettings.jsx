@@ -3,7 +3,7 @@ import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { setRoomSettings } from '../../store/actions/room';
+import { setRoomSettings, startPrivateGame } from '../../store/actions/room';
 
 const RoomSettings = () => {
   const dispatch = useDispatch();
@@ -110,13 +110,18 @@ const RoomSettings = () => {
         />
       </Form.Group>
 
-      {/* {isHost && playable && ( */}
-      <Form.Group>
-        <Link to={`/rooms/${roomId}/game`}>
-          <Button>START!</Button>
-        </Link>
-      </Form.Group>
-      {/* )} */}
+      {isHost && (
+        <Form.Group>
+          <Link to={`/rooms/${roomId}/game`}>
+            <Button
+              disabled={!playable}
+              onClick={() => dispatch(startPrivateGame())}
+            >
+              START!
+            </Button>
+          </Link>
+        </Form.Group>
+      )}
     </Form>
   );
 };
