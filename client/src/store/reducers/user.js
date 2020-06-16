@@ -4,6 +4,9 @@ import {
   SET_USER_LOADING,
   SET_USER_ERROR,
   SET_USER_ON_USER_LEFT,
+  SET_USER_WORD_LIST,
+  SET_USER_SELECTED_WORD,
+  UPDATE_USER_PICKING_REMAINING_TIME,
 } from '../actions/types';
 
 const initialState = {
@@ -12,6 +15,10 @@ const initialState = {
     name: null,
     isHost: false,
     score: 0,
+    words: null,
+    isCurrentPlayer: false,
+    selectedWord: null,
+    pickingRemainingTime: null,
   },
   errors: {},
 };
@@ -49,6 +56,31 @@ export default function (state = initialState, action) {
         user: {
           ...state.user,
           isHost: state.user.name === action.payload.newHost,
+        },
+      };
+    case SET_USER_WORD_LIST:
+      return {
+        ...state,
+        user: {
+          ...state.user,
+          words: action.payload,
+          isCurrentPlayer: true,
+        },
+      };
+    case SET_USER_SELECTED_WORD:
+      return {
+        ...state,
+        user: {
+          ...state.user,
+          selectedWord: action.payload,
+        },
+      };
+    case UPDATE_USER_PICKING_REMAINING_TIME:
+      return {
+        ...state,
+        user: {
+          ...state.user,
+          pickingRemainingTime: action.payload,
         },
       };
     default:

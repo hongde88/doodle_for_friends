@@ -13,12 +13,13 @@ import {
   SEND_MESSAGE_TO_ROOM,
   RECEIVE_MESSAGE_FROM_ROOM,
   RECEIVE_OLD_MESSAGES_FROM_ROOM,
-  START_ROOM_TIMER,
-  RECEIVE_ROOM_REMAINING_TIME,
+  START_GUESSING_TIMER,
+  RECEIVE_ROOM_GUESSING_REMAINING_TIME,
   RECEIVE_ROOM_DRAWING_INFO,
   SEND_ROOM_DRAWING_INFO,
   START_PRIVATE_GAME,
   SET_GAME_STARTED,
+  UPDATE_GAME_STATE,
 } from './types';
 
 export const createPrivateRoom = (username, avatarIndex) => (dispatch) => {
@@ -80,11 +81,11 @@ export const receiveOldMessagesFromRoom = (data) => (dispatch) => {
 };
 
 export const startRoomTimer = (data) => (dispatch) => {
-  dispatch({ type: START_ROOM_TIMER, payload: data });
+  dispatch({ type: START_GUESSING_TIMER, payload: data });
 };
 
-export const receiveRoomRemainingTime = (data) => (dispatch) => {
-  dispatch({ type: RECEIVE_ROOM_REMAINING_TIME, payload: data });
+export const receiveRoomGuessingRemainingTime = (data) => (dispatch) => {
+  dispatch({ type: RECEIVE_ROOM_GUESSING_REMAINING_TIME, payload: data });
 };
 
 export const sendRoomDrawingInfo = (data) => (dispatch) => {
@@ -101,4 +102,8 @@ export const startPrivateGame = () => (dispatch) => {
 
 export const setGameStarted = () => (dispatch) => {
   dispatch({ type: SET_GAME_STARTED });
+};
+
+export const updateGameState = (data) => (dispatch) => {
+  dispatch({ type: UPDATE_GAME_STATE, payload: data });
 };

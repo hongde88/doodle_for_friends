@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import styles from './DrawingBoard.module.css';
 import { sendRoomDrawingInfo } from '../../store/actions/room';
+import PropType from 'prop-types';
 
 const useWindowSize = () => {
   const [size, setSize] = useState(null);
@@ -18,56 +19,87 @@ const useWindowSize = () => {
   return size;
 };
 
-const DrawingBoard = ({ disabled }) => {
+const DrawingBoard = ({ show }) => {
   const canvasRef = useRef(null);
   const [current, setCurrent] = useState({ color: 'black', x: 0, y: 0 });
   const [drawing, setDrawing] = useState(false);
-  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+  const [canvasOriginalSize, setCanvasOriginalSize] = useState({
+    width: 0,
+    height: 0,
+  }); // used for canvas redrawing on window resize
+  const [canvasCurrentSize, setCanvasCurrentSize] = useState({
+    width: 0,
+    height: 0,
+  });
   const [ctx, setCtx] = useState(null);
   const drawingInfo = useSelector((state) => state.room.drawingInfo);
   const dispatch = useDispatch();
   const windowSize = useWindowSize();
+  const [lines, setLines] = useState([]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     canvas.width = canvas.offsetWidth;
     canvas.height = canvas.offsetHeight;
-    setCanvasSize({ width: canvas.width, height: canvas.height });
+    setCanvasOriginalSize({ width: canvas.width, height: canvas.height });
+    setCanvasCurrentSize({ width: canvas.width, height: canvas.height });
     setCtx(canvas.getContext('2d'));
   }, []);
 
   useEffect(() => {
     if (windowSize) {
+      // const canvas = canvasRef.current;
+
+      // // draw on a temp canvas
+      // let tempCanvas = document.createElement('canvas');
+      // let tempCtx = tempCanvas.getContext('2d');
+      // tempCanvas.width = canvasSize.width;
+      // tempCanvas.height = canvasSize.height;
+      // tempCtx.drawImage(canvas, 0, 0);
+
+      // canvas.width = canvas.offsetWidth;
+      // canvas.height = canvas.offsetHeight;
+      // const ctx = canvas.getContext('2d');
+
+      // ctx.drawImage(
+      //   tempCanvas,
+      //   0,
+      //   0,
+      //   tempCanvas.width,
+      //   tempCanvas.height,
+      //   0,
+      //   0,
+      //   canvas.width,
+      //   canvas.height
+      // );
+
+      // setCanvasSize({ width: canvas.width, height: canvas.height });
+      // setCtx(ctx);
+
+      // tempCanvas = null;
+      // tempCtx = null;
+
+      const originalCanvasWidth = canvasOriginalSize.width;
+      const originalCanvasHeight = canvasOriginalSize.height;
+
       const canvas = canvasRef.current;
-
-      // draw on a temp canvas
-      let tempCanvas = document.createElement('canvas');
-      let tempCtx = tempCanvas.getContext('2d');
-      tempCanvas.width = canvasSize.width;
-      tempCanvas.height = canvasSize.height;
-      tempCtx.drawImage(canvas, 0, 0);
-
       canvas.width = canvas.offsetWidth;
       canvas.height = canvas.offsetHeight;
       const ctx = canvas.getContext('2d');
 
-      ctx.drawImage(
-        tempCanvas,
-        0,
-        0,
-        tempCanvas.width,
-        tempCanvas.height,
-        0,
-        0,
-        canvas.width,
-        canvas.height
-      );
+      const xScale = canvas.width / originalCanvasWidth;
+      const yScale = canvas.height / originalCanvasHeight;
 
-      setCanvasSize({ width: canvas.width, height: canvas.height });
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.scale(xScale, yScale);
+
+      for (const line of lines) {
+        drawLine(line.x0, line.y0, line.x1, line.y1, line.color, false);
+      }
+
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      setCanvasCurrentSize({ width: canvas.width, height: canvas.height });
       setCtx(ctx);
-
-      tempCanvas = null;
-      tempCtx = null;
     }
   }, [windowSize]);
 
@@ -78,12 +110,32 @@ const DrawingBoard = ({ disabled }) => {
         drawingInfo.y0,
         drawingInfo.x1,
         drawingInfo.y1,
-        drawingInfo.color
+        drawingInfo.color,
+        false,
+        drawingInfo.drawingCanvasInfo
       );
     }
   }, [drawingInfo]);
 
-  const drawLine = (x0, y0, x1, y1, color, emit) => {
+  const drawLine = (
+    x0,
+    y0,
+    x1,
+    y1,
+    color,
+    emit,
+    drawingCanvasInfo,
+    isCurrentPlayerDrawing
+  ) => {
+    setLines([...lines, { x0, y0, x1, y1, color }]);
+
+    if (drawingCanvasInfo && !isCurrentPlayerDrawing) {
+      ctx.scale(
+        canvasCurrentSize.width / drawingCanvasInfo.width,
+        canvasCurrentSize.height / drawingCanvasInfo.height
+      );
+    }
+
     ctx.beginPath();
     ctx.moveTo(x0, y0);
     ctx.lineTo(x1, y1);
@@ -92,11 +144,15 @@ const DrawingBoard = ({ disabled }) => {
     ctx.stroke();
     ctx.closePath();
 
+    if (drawingCanvasInfo && !isCurrentPlayerDrawing) {
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+    }
+
     if (!emit) {
       return;
     }
 
-    dispatch(sendRoomDrawingInfo({ x0, y0, x1, y1, color }));
+    dispatch(sendRoomDrawingInfo({ x0, y0, x1, y1, color, drawingCanvasInfo }));
   };
 
   const onColorUpdate = (color) => {
@@ -154,7 +210,16 @@ const DrawingBoard = ({ disabled }) => {
       e.target.getBoundingClientRect()
     );
 
-    drawLine(current.x, current.y, x, y, current.color, true);
+    drawLine(
+      current.x,
+      current.y,
+      x,
+      y,
+      current.color,
+      true,
+      canvasCurrentSize,
+      true
+    );
   };
 
   const onMouseMove = (e) => {
@@ -168,7 +233,16 @@ const DrawingBoard = ({ disabled }) => {
       e.target.getBoundingClientRect()
     );
 
-    drawLine(current.x, current.y, x, y, current.color, true);
+    drawLine(
+      current.x,
+      current.y,
+      x,
+      y,
+      current.color,
+      true,
+      canvasCurrentSize,
+      true
+    );
 
     setCurrent({
       ...current,
@@ -180,15 +254,15 @@ const DrawingBoard = ({ disabled }) => {
   return (
     <div
       style={
-        disabled
+        show
           ? {
-              pointerEvents: 'none',
-              opacity: '0.4',
               height: 'calc(100vh - 80px - 60px)',
               border: '1px solid black',
               marginLeft: 20,
             }
           : {
+              pointerEvents: 'none',
+              opacity: '0.4',
               height: 'calc(100vh - 80px - 60px)',
               border: '1px solid black',
               marginLeft: 20,
@@ -239,6 +313,10 @@ const DrawingBoard = ({ disabled }) => {
       </div>
     </div>
   );
+};
+
+DrawingBoard.propTypes = {
+  show: PropType.bool,
 };
 
 export default DrawingBoard;

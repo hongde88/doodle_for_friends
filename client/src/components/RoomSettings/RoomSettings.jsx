@@ -114,7 +114,7 @@ const RoomSettings = () => {
         <Form.Group>
           <Link to={`/rooms/${roomId}/game`}>
             <Button
-              disabled={!playable}
+              // disabled={!playable}
               onClick={() => dispatch(startPrivateGame())}
             >
               START!

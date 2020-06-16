@@ -5,13 +5,16 @@ import { CircularProgressbar } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 
 const Timer = ({ startTime }) => {
-  const remainingTime = useSelector((state) => state.room.remainingTime);
+  const guessingRemainingTime = useSelector(
+    (state) => state.room.guessingRemainingTime
+  );
   return (
     <div style={{ width: 60, height: 'auto' }}>
       <CircularProgressbar
-        value={remainingTime || startTime}
+        value={guessingRemainingTime || startTime}
         text={`${
-          remainingTime || (remainingTime === 0 ? remainingTime : startTime)
+          guessingRemainingTime ||
+          (guessingRemainingTime === 0 ? guessingRemainingTime : startTime)
         }`}
         maxValue={startTime}
         counterClockwise={true}

@@ -5,9 +5,10 @@ import {
   JOIN_ROOM,
   SET_ROOM_SETTINGS,
   SEND_MESSAGE_TO_ROOM,
-  START_ROOM_TIMER,
+  START_GUESSING_TIMER,
   SEND_ROOM_DRAWING_INFO,
   START_PRIVATE_GAME,
+  PICK_WORD,
 } from './actions/types';
 import {
   setRoom,
@@ -18,15 +19,18 @@ import {
   setRoomOnUserLeft,
   receiveMessageFromRoom,
   receiveOldMessagesFromRoom,
-  receiveRoomRemainingTime,
+  receiveRoomGuessingRemainingTime,
   receiveRoomDrawingInfo,
   setGameStarted,
+  updateGameState,
 } from './actions/room';
 import {
   setCurrentUser,
   setUserLoading,
   setError as setUserError,
   setUserOnUserLeft,
+  updateUserPickingRemainingTime,
+  setUserWordList,
 } from './actions/user';
 
 const URL = 'http://localhost:5001';
@@ -57,17 +61,28 @@ const socketMiddleware = (store) => (next) => async (action) => {
         socket.on('old messages', (data) => {
           store.dispatch(receiveOldMessagesFromRoom(data));
         });
-        socket.on('timer', (data) => {
-          // store.dispatch({
-          //   type: 'RECEIVE_ROOM_REMAINING_TIME',
-          //   payload: data.remainingTime,
-          // });
-          store.dispatch(receiveRoomRemainingTime(data.remainingTime));
+        socket.on('guessing timer remaining', (data) => {
+          store.dispatch(receiveRoomGuessingRemainingTime(data.remainingTime));
         });
         socket.on('drawing', (data) => {
           store.dispatch(receiveRoomDrawingInfo(data));
         });
-        socket.on('private game started', () => {
+        socket.on('in game', (data) => {
+          store.dispatch(updateGameState(data));
+        });
+        socket.on('pick words', (data) => {
+          store.dispatch(setUserWordList(data));
+          // socket.emit('start choosing timer', 10, (word) => {
+          //   if (word) {
+          //     // dispatch set word
+          //     store.dispatch(setUserPickedWord(word));
+          //   }
+          // });
+        });
+        socket.on('picking remaining time', (data) => {
+          store.dispatch(updateUserPickingRemainingTime(data.remainingTime));
+        });
+        socket.on('set game started', () => {
           store.dispatch(setGameStarted());
         });
       }
@@ -142,9 +157,9 @@ const socketMiddleware = (store) => (next) => async (action) => {
         socket.emit('new message', action.payload);
       }
       break;
-    case START_ROOM_TIMER:
+    case START_GUESSING_TIMER:
       if (socket) {
-        socket.emit('timer', action.payload);
+        socket.emit('start guessing timer', action.payload);
       }
       break;
     case SEND_ROOM_DRAWING_INFO:
@@ -155,6 +170,11 @@ const socketMiddleware = (store) => (next) => async (action) => {
     case START_PRIVATE_GAME:
       if (socket) {
         socket.emit('start private game');
+      }
+      break;
+    case PICK_WORD:
+      if (socket) {
+        socket.emit('word picked', action.payload);
       }
       break;
     default:

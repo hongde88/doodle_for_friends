@@ -4,6 +4,10 @@ import {
   SET_USER_LOADING,
   SET_USER_ERROR,
   SET_USER_ON_USER_LEFT,
+  SET_USER_WORD_LIST,
+  SET_USER_SELECTED_WORD,
+  UPDATE_USER_PICKING_REMAINING_TIME,
+  PICK_WORD,
 } from './types';
 
 export const setCurrentUser = (username) => (dispatch) => {
@@ -24,4 +28,20 @@ export const setError = (data) => (dispatch) => {
 
 export const setUserOnUserLeft = (data) => (dispatch) => {
   dispatch({ type: SET_USER_ON_USER_LEFT, payload: data });
+};
+
+export const setUserWordList = (data) => (dispatch) => {
+  dispatch({ type: SET_USER_WORD_LIST, payload: data });
+};
+
+export const setUserSelectedWord = (data) => (dispatch) => {
+  dispatch({ type: SET_USER_SELECTED_WORD, payload: data });
+};
+
+export const updateUserPickingRemainingTime = (data) => (dispatch) => {
+  dispatch({ type: UPDATE_USER_PICKING_REMAINING_TIME, payload: data });
+};
+
+export const userPickAWord = (data) => (dispatch) => {
+  dispatch({ type: PICK_WORD, payload: data });
 };

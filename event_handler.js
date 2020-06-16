@@ -1,10 +1,10 @@
-const nameGenerator = require('fakerator')();
+const nameGenerator = require('fakerator')(); // generate random names for users
 
-const randomstring = require('randomstring');
+const randomstring = require('randomstring'); // generate room ids
 
-const messageCache = {};
+const messageCache = {}; // cache room messages in memory
 
-const rooms = {};
+const rooms = {}; // cache game rooms
 
 class EventHandler {
   constructor(io, socket) {
@@ -13,80 +13,159 @@ class EventHandler {
   }
 
   handleGameEvents() {
-    const socket = this.socket;
-    const io = this.io;
-
     // drawing handler
-    socket.on('drawing', this.handleDrawingEvent(socket));
+    this.socket.on('drawing', this.handleDrawingEvent());
 
     // chat handler
-    socket.on('new message', this.handleNewMessageEvent(io, socket));
-
-    // play handler
-    socket.on('play', this.handlePlayEvent(socket));
+    this.socket.on('new message', this.handleNewMessageEvent());
 
     // create private room handler
-    socket.on('create private room', this.handleCreatePrivateRoomEvent(socket));
+    this.socket.on('create private room', this.handleCreatePrivateRoomEvent());
 
     // update private room settings
-    socket.on('update room settings', this.handleUpdateRoomSettings(socket));
+    this.socket.on('update room settings', this.handleUpdateRoomSettings());
 
     // start private game handler
-    socket.on('start private game', this.handleStartPrivateGameEvent(socket));
+    this.socket.on('start private game', this.handleStartPrivateGameEvent());
 
     // join private room handler
-    socket.on('join private room', this.handleJoinPrivateRoomEvent(io, socket));
+    this.socket.on('join private room', this.handleJoinPrivateRoomEvent());
 
-    // start timer handler
-    socket.on('timer', this.handleStartTimerEvent(io, socket));
+    // start guessing timer handler - countdown timer displayed in game room
+    this.socket.on(
+      'start guessing timer',
+      this.handleStartGuessingTimerEvent()
+    );
 
-    // select word handler
-    socket.on('select word', this.handleSelectWordEvent(socket));
+    // word picked handler
+    this.socket.on('word picked', this.handleWordPickedByPlayer());
+
+    // start timer for choosing word
+    // this.socket.on('start choosing timer', this.handleStartChoosingTimer());
 
     // disconnect handler
-    socket.on(
+    this.socket.on(
       'disconnect',
-      this.handleDisconnectOrLeaveEvent(socket, 'disconnect')
+      this.handleDisconnectOrLeaveEvent('disconnect')
     );
 
     // leave handler
-    socket.on('leave', this.handleDisconnectOrLeaveEvent(socket, 'leave'));
+    this.socket.on('leave', this.handleDisconnectOrLeaveEvent('leave'));
   }
 
-  handleDrawingEvent(socket) {
-    return (data) => socket.broadcast.emit('drawing', data);
+  // handleSetGameState(roomId, state, word) {
+  //   if (rooms[roomId]) {
+  //     rooms[roomId].gameState = state;
+  //   }
+
+  //   this.io.to(roomId).emit('in game', {
+  //     gameState: state,
+  //     wordLength: word ? word.length : 0,
+  //   });
+  // }
+  handleSetGameState(roomId, state, data) {
+    if (rooms[roomId]) {
+      rooms[roomId].gameState = state;
+    }
+
+    this.io.to(roomId).emit('in game', {
+      gameState: state,
+      ...data,
+    });
   }
 
-  handleNewMessageEvent(io, socket) {
+  handleWordPickedByPlayer() {
     return (data) => {
-      const username = data.username || socket.username;
-      const roomId = data.roomId || socket.roomId;
-      if (!rooms[roomId]) return;
-      const message = `${username}: ${data.message}`;
-      messageCache[roomId] = messageCache[roomId] || [];
-      messageCache[roomId].push(message);
-      io.to(roomId).emit('new message', message);
-    };
-  }
+      const roomId = this.socket.roomId;
 
-  handlePlayEvent(socket) {
-    return (data) => {
-      if (!data.username) data.username = nameGenerator.names.firstName();
-      socket.emit('old messages', messageCache);
-      socket.username = data.username;
-      socket.broadcast.emit('join', {
-        username: data.username,
+      if (!roomId) {
+        return;
+      }
+
+      rooms[roomId].selectedWord = data;
+      rooms[roomId].wordHint = data.replace(/[a-zA-Z]/g, '_').split('');
+
+      this.handleSetGameState(roomId, 'drawing', {
+        wordHint: rooms[roomId].wordHint.join(' '),
       });
     };
   }
 
-  handleCreatePrivateRoomEvent(socket) {
+  // handleStartChoosingTimer() {
+  //   return (data, callback) => {
+  //     const roomId = this.socket.roomId;
+  //     if (roomId && rooms[roomId]) {
+  //       let remainingTime = data + 1;
+
+  //       const interval = setInterval(() => {
+  //         remainingTime--;
+
+  //         this.socket.emit('word picking remaining time', { remainingTime });
+
+  //         if (remainingTime === 0) {
+  //           clearInterval(interval);
+
+  //           let randomWord = null;
+  //           if (rooms[roomId] && !rooms[roomId].currentWord) {
+  //             // word not chosen yet, then pick a random word
+  //             randomWord =
+  //               rooms[roomId].currentWordList[this.generateRandomNumber(0, 2)];
+  //           }
+
+  //           callback(randomWord);
+
+  //           this.handleSetGameState(roomId, 'drawing', {
+  //             wordLength: randomWord ? randomWord.length : 0,
+  //           });
+  //         }
+  //       }, 1000);
+  //     }
+  //   };
+  // }
+
+  handleDrawingEvent() {
+    return (data) => this.socket.broadcast.emit('drawing', data);
+  }
+
+  handleNewMessageEvent() {
+    return (data) => {
+      const username = data.username || this.socket.username;
+      const roomId = data.roomId || this.socket.roomId;
+      if (!rooms[roomId]) return;
+      let message = `${username}: ${data.message}`;
+      messageCache[roomId] = messageCache[roomId] || [];
+
+      // check the answer
+      if (
+        rooms[roomId] &&
+        rooms[roomId].gameState === 'drawing' &&
+        rooms[roomId].guessRemainingTime > 0
+      ) {
+        if (rooms[roomId].selectedWord.includes(data.message)) {
+          if (!rooms[roomId].correctGuessUsers.includes(username)) {
+            message = `${username} guessed the word`;
+            rooms[roomId].correctGuessUsers.push(username);
+          } else {
+            message = 'You already guessed the word';
+            this.socket.emit('new message', message);
+            return;
+          }
+          console.log(rooms[roomId].correctGuessUsers);
+        }
+      }
+
+      messageCache[roomId].push(message);
+      this.io.to(roomId).emit('new message', message);
+    };
+  }
+
+  handleCreatePrivateRoomEvent() {
     return (data, callback) => {
       const roomId = randomstring.generate(9);
-      socket.roomId = roomId;
-      socket.join(roomId);
+      this.socket.roomId = roomId;
+      this.socket.join(roomId);
       data.username = data.username || nameGenerator.names.firstName();
-      socket.username = data.username;
+      this.socket.username = data.username;
       const avatarIndex = data.avatarIndex || 0;
       rooms[roomId] = {
         host: data.username,
@@ -97,9 +176,13 @@ class EventHandler {
         users: {},
         gameStarted: false,
         numUsers: 1,
+        correctGuessUsers: [],
+        words: defaultWordList,
       };
 
-      rooms[roomId].users[data.username] = { avatarIndex, id: socket.id };
+      rooms[roomId].searchRange = rooms[roomId].words.length - 1;
+
+      rooms[roomId].users[data.username] = { avatarIndex, id: this.socket.id };
 
       messageCache[roomId] = [];
 
@@ -125,9 +208,9 @@ class EventHandler {
     };
   }
 
-  handleUpdateRoomSettings(socket) {
+  handleUpdateRoomSettings() {
     return (data, callback) => {
-      const roomId = data.roomId || socket.roomId;
+      const roomId = data.roomId || this.socket.roomId;
 
       if (!rooms[roomId]) return;
 
@@ -137,16 +220,15 @@ class EventHandler {
 
       if (data.words) {
         const words = data.words.split(',').map((word) => word.trim());
+
         if (data.exclusive) {
           rooms[roomId].words = words;
         } else {
           rooms[roomId].words = [...words, ...defaultWordList];
         }
-      } else {
-        rooms[roomId].words = defaultWordList;
-      }
 
-      rooms[roomId].searchRange = rooms[roomId].words.length - 1;
+        rooms[roomId].searchRange = rooms[roomId].words.length - 1;
+      }
 
       const newSettings = {
         maxRound: data.maxRound,
@@ -154,7 +236,7 @@ class EventHandler {
         exclusive: data.exclusive,
       };
 
-      socket.to(roomId).emit('room settings updated', newSettings);
+      this.socket.to(roomId).emit('room settings updated', newSettings);
 
       if (callback) {
         callback(newSettings);
@@ -162,18 +244,62 @@ class EventHandler {
     };
   }
 
-  handleStartPrivateGameEvent(socket) {
+  handleStartPrivateGameEvent() {
     return () => {
-      const roomId = socket.roomId;
+      const roomId = this.socket.roomId;
       if (rooms[roomId]) {
-        rooms[roomId].currentRound = 1;
-        rooms[roomId].currentPlayer;
-        socket.to(roomId).emit('private game started');
+        const currentRound = 1;
+        rooms[roomId].currentRound = currentRound;
+
+        const currentPlayerIdx = 0;
+        rooms[roomId].currentPlayerIdx = currentPlayerIdx;
+
+        const currentPlayerName = this.generateUserList(roomId)[
+          currentPlayerIdx
+        ].name;
+        rooms[roomId].currentPlayer = currentPlayerName;
+
+        const currentPlayerSocketId = rooms[roomId].users[currentPlayerName].id;
+        const currentSearchRange = rooms[roomId].searchRange;
+
+        const randomWords = this.pickRandomWords(roomId, currentSearchRange, 3);
+
+        rooms[roomId].currentWordList = randomWords;
+
+        // update search range
+        rooms[roomId].searchRange = currentSearchRange - 3;
+
+        this.io.to(roomId).emit('set game started');
+
+        // setTimeout(() => {
+        // rooms[roomId].gameState = 'starting';
+        // this.io.to(roomId).emit('in game', {
+        //   currentRound,
+        //   gameState: 'starting',
+        // });
+        // }, 1000);
+        this.handleSetGameState(roomId, 'starting', {
+          currentRound,
+        });
+
+        setTimeout(() => {
+          // rooms[roomId].gameState = 'choosing';
+
+          this.io.to(currentPlayerSocketId).emit('pick words', randomWords);
+
+          // this.io.to(roomId).emit('in game', {
+          //   currentPlayerName,
+          //   gameState: 'choosing',
+          // });
+          this.handleSetGameState(roomId, 'choosing', {
+            currentPlayerName,
+          });
+        }, 2000);
       }
     };
   }
 
-  handleJoinPrivateRoomEvent(io, socket) {
+  handleJoinPrivateRoomEvent() {
     return (data, callback) => {
       const roomId = data.roomId;
       const avatarIndex = data.avatarIndex;
@@ -185,7 +311,7 @@ class EventHandler {
             message: 'room does not exist',
           });
         } else {
-          return socket.emit('room does not exist');
+          return this.socket.emit('room does not exist');
         }
       }
 
@@ -200,17 +326,17 @@ class EventHandler {
               message: 'name already exists',
             });
           } else {
-            return socket.emit('name exists');
+            return this.socket.emit('name exists');
           }
         }
       }
 
-      socket.roomId = roomId;
-      socket.username = username;
-      socket.join(roomId);
-      rooms[roomId].users[username] = { avatarIndex, id: socket.id };
+      this.socket.roomId = roomId;
+      this.socket.username = username;
+      this.socket.join(roomId);
+      rooms[roomId].users[username] = { avatarIndex, id: this.socket.id };
       rooms[roomId].numUsers++;
-      io.to(roomId).emit('private room joined', {
+      this.io.to(roomId).emit('private room joined', {
         users: this.generateUserList(roomId),
         maxRound: rooms[roomId].maxRound,
         drawTime: rooms[roomId].drawTime,
@@ -220,6 +346,7 @@ class EventHandler {
         host: rooms[roomId].host,
         gameStarted: rooms[roomId].gameStarted,
         numUsers: rooms[roomId].numUsers,
+        gameState: rooms[roomId].gameState,
       });
 
       if (callback) {
@@ -229,42 +356,64 @@ class EventHandler {
         });
       }
 
-      if (messageCache[socket.roomId])
-        socket.emit('old messages', messageCache[socket.roomId]);
+      if (messageCache[roomId])
+        this.socket.emit('old messages', messageCache[roomId]);
     };
   }
 
-  handleStartTimerEvent(io, socket) {
+  handleStartGuessingTimerEvent() {
     return (data) => {
-      const roomId = data.roomId || socket.roomId;
-      let remainingTime = data.duration + 1;
-      console.log(remainingTime);
-      const interval = setInterval(() => {
-        remainingTime--;
-        io.to(roomId).emit('timer', { remainingTime });
-        if (remainingTime === 0) clearInterval(interval);
-      }, 1000);
+      const roomId = data.roomId || this.socket.roomId;
+
+      if (roomId) {
+        rooms[roomId].guessRemainingTime = data.duration;
+
+        rooms[roomId].guessingInterval = setInterval(() => {
+          // console.log(roomId);
+          if (!rooms[roomId]) {
+            clearInterval(interval);
+            return;
+          }
+          rooms[roomId].guessRemainingTime--;
+          this.io.to(roomId).emit('guessing timer remaining', {
+            remainingTime: rooms[roomId].guessRemainingTime,
+          });
+          if (rooms[roomId].guessRemainingTime === 0) {
+            clearInterval(rooms[roomId].guessingInterval);
+            rooms[roomId].guessingInterval = false;
+            setTimeout(() => {
+              // console.log(roomId);
+              this.io.to(roomId).emit('result', {
+                selectedWord: rooms[roomId].selectedWord,
+                scores: [],
+              });
+            }, 1000);
+          }
+        }, 1000);
+      }
     };
   }
 
-  handleSelectWordEvent(socket) {
+  handleSelectWordEvent() {
     return (data) => {
-      const roomId = data.roomId || socket.roomId;
+      const roomId = data.roomId || this.socket.roomId;
       rooms[roomId].selectedWord = data.selectedWord;
     };
   }
 
-  handleDisconnectOrLeaveEvent(socket, type) {
+  handleDisconnectOrLeaveEvent(type) {
     return () => {
       if (type === 'disconnect') {
         console.log(
-          `a client ${socket.id} has been disconnected from the server`
+          `a client ${this.socket.id} has been disconnected from the server`
         );
       } else {
-        console.log(`a client ${socket.id} has left the room ${socket.roomId}`);
+        console.log(
+          `a client ${this.socket.id} has left the room ${this.socket.roomId}`
+        );
       }
-      const roomId = socket.roomId;
-      const username = socket.username;
+      const roomId = this.socket.roomId;
+      const username = this.socket.username;
       if (roomId) {
         if (rooms[roomId] && rooms[roomId].users) {
           delete rooms[roomId].users[username];
@@ -281,7 +430,7 @@ class EventHandler {
         }
 
         if (rooms[roomId]) {
-          socket.to(roomId).emit('user left', {
+          this.socket.to(roomId).emit('user left', {
             host: rooms[roomId].host,
             playable: rooms[roomId].numUsers > 1,
             users: this.generateUserList(roomId),
@@ -290,11 +439,12 @@ class EventHandler {
           if (messageCache[roomId]) {
             messageCache[roomId].push(message);
           }
-          socket.to(roomId).emit('new message', message);
+          this.socket.to(roomId).emit('new message', message);
         }
 
-        socket.leave(roomId);
-        socket.roomId = null;
+        this.socket.leave(roomId);
+        this.socket.roomId = null;
+        this.socket.username = null;
       }
     };
   }

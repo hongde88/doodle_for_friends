@@ -4,13 +4,14 @@ import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
 import PropType from 'prop-types';
 
-const GameInfo = ({ duration }) => {
+const GameInfo = ({ duration, word }) => {
+  console.log(word);
   return (
     <Row className='align-items-center' style={{ background: 'lightgrey' }}>
       <Col md='2'>
         <Timer startTime={duration} />
       </Col>
-      <Col md='8'>_ _ _ _ _</Col>
+      <Col md='8'>{word}</Col>
       <Col md='2'></Col>
     </Row>
   );
@@ -18,6 +19,7 @@ const GameInfo = ({ duration }) => {
 
 GameInfo.propTypes = {
   duration: PropType.number.isRequired,
+  word: PropType.string,
 };
 
 export default GameInfo;

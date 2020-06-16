@@ -9,9 +9,10 @@ import {
   SET_ROOM_ON_USER_LEFT,
   RECEIVE_MESSAGE_FROM_ROOM,
   RECEIVE_OLD_MESSAGES_FROM_ROOM,
-  RECEIVE_ROOM_REMAINING_TIME,
+  RECEIVE_ROOM_GUESSING_REMAINING_TIME,
   RECEIVE_ROOM_DRAWING_INFO,
   SET_GAME_STARTED,
+  UPDATE_GAME_STATE,
 } from '../actions/types';
 
 const initialState = {
@@ -20,8 +21,9 @@ const initialState = {
   navigatedFrom: null,
   currentMessage: null,
   oldMessages: null,
-  remainingTime: null,
+  guessingRemainingTime: null,
   drawingInfo: null,
+  inGame: false,
   errors: {},
 };
 
@@ -83,10 +85,10 @@ export default function (state = initialState, action) {
         ...state,
         oldMessages: action.payload,
       };
-    case RECEIVE_ROOM_REMAINING_TIME:
+    case RECEIVE_ROOM_GUESSING_REMAINING_TIME:
       return {
         ...state,
-        remainingTime: action.payload,
+        guessingRemainingTime: action.payload,
       };
     case RECEIVE_ROOM_DRAWING_INFO:
       return {
@@ -96,7 +98,15 @@ export default function (state = initialState, action) {
     case SET_GAME_STARTED:
       return {
         ...state,
-        gameStarted: true,
+        inGame: true,
+      };
+    case UPDATE_GAME_STATE:
+      return {
+        ...state,
+        room: {
+          ...state.room,
+          ...action.payload,
+        },
       };
     default:
       return state;

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { /*useEffect,*/ useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
@@ -6,17 +6,17 @@ import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { useDispatch, useSelector } from 'react-redux';
 import { Redirect, useParams } from 'react-router-dom';
 import { setRoomNavigatedFrom } from '../../store/actions/room';
-import { useHistory } from 'react-router-dom';
+// import { useHistory } from 'react-router-dom';
 import Avatar from '../Avatar/Avatar';
 import RoomSettings from '../RoomSettings/RoomSettings';
 import styles from './Lobby.module.css';
 
 const Lobby = () => {
-  const history = useHistory();
+  // const history = useHistory();
   const { id } = useParams();
   const user = useSelector((state) => state.user.user.name);
   const players = useSelector((state) => state.room.room.users);
-  const gameStarted = useSelector((state) => state.room.gameStarted);
+  const inGame = useSelector((state) => state.room.inGame);
   const roomId = useSelector((state) => state.room.room.roomId);
 
   const [copied, setCopied] = useState(false);
@@ -28,11 +28,21 @@ const Lobby = () => {
   //   };
   // }, [dispatch]);
 
-  useEffect(() => {
-    if (gameStarted) {
-      history.push(`/rooms/${roomId}/game`);
-    }
-  }, [gameStarted]);
+  // useEffect(() => {
+  //   if (inGame) {
+  //     history.push(`/rooms/${roomId}/game`);
+  //   }
+  // }, [inGame]);
+
+  if (inGame) {
+    return (
+      <Redirect
+        to={{
+          pathname: `/rooms/${roomId}/game`,
+        }}
+      />
+    );
+  }
 
   if (!user) {
     if (id) {

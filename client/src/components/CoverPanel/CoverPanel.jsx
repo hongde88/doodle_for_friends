@@ -1,23 +1,29 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import styles from './CoverPanel.module.css';
 
-const CoverPanel = () => {
+const CoverPanel = ({ children, isRound }) => {
   // const content = useSelector((state) => state.room.room.content);
-  const content = 'Round 1';
+  // const content = 'Round 1';
   return (
-    <div
-      style={{
-        height: 'calc(100vh - 80px - 60px)',
-        border: '1px solid black',
-        marginLeft: 20,
-        backgroundColor: 'black',
-      }}
-    >
-      <div className={styles.panel}>
-        <h2>{content}</h2>
+    <div className={styles.container}>
+      <div
+        className={`${styles.panel} ${
+          isRound ? styles.slideAndAway : styles.slideDown
+        }`}
+      >
+        <h2>{children}</h2>
       </div>
     </div>
   );
+};
+
+CoverPanel.defaultProps = {
+  isRound: false,
+};
+
+CoverPanel.propTypes = {
+  isRound: PropTypes.bool,
 };
 
 export default CoverPanel;
