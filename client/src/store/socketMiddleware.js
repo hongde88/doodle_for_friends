@@ -23,6 +23,8 @@ import {
   receiveRoomDrawingInfo,
   setGameStarted,
   updateGameState,
+  startRoomTimer,
+  resetRoomWordHint,
 } from './actions/room';
 import {
   setCurrentUser,
@@ -31,6 +33,8 @@ import {
   setUserOnUserLeft,
   updateUserPickingRemainingTime,
   setUserWordList,
+  setUserSelectedWord,
+  resetCurrentPlayer,
 } from './actions/user';
 
 const URL = 'http://localhost:5001';
@@ -72,11 +76,15 @@ const socketMiddleware = (store) => (next) => async (action) => {
         });
         socket.on('pick words', (data) => {
           store.dispatch(setUserWordList(data));
-          // socket.emit('start choosing timer', 10, (word) => {
-          //   if (word) {
-          //     // dispatch set word
-          //     store.dispatch(setUserPickedWord(word));
-          //   }
+          // if current player doesn't pick a word within 20 sec, then pick one for him
+          // socket.emit('start choosing timer', 20, (data) => {
+          //   store.dispatch(setUserSelectedWord(data.word));
+          //   store.dispatch(
+          //     startRoomTimer({
+          //       duration: data.duration,
+          //       roomId: data.roomId,
+          //     })
+          //   );
           // });
         });
         socket.on('picking remaining time', (data) => {
@@ -84,6 +92,12 @@ const socketMiddleware = (store) => (next) => async (action) => {
         });
         socket.on('set game started', () => {
           store.dispatch(setGameStarted());
+        });
+        socket.on('clear current player', () => {
+          store.dispatch(resetCurrentPlayer());
+        });
+        socket.on('reset room word hint', () => {
+          store.dispatch(resetRoomWordHint());
         });
       }
       break;

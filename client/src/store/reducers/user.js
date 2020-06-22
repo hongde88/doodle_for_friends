@@ -7,6 +7,7 @@ import {
   SET_USER_WORD_LIST,
   SET_USER_SELECTED_WORD,
   UPDATE_USER_PICKING_REMAINING_TIME,
+  RESET_CURRENT_PLAYER,
 } from '../actions/types';
 
 const initialState = {
@@ -65,6 +66,15 @@ export default function (state = initialState, action) {
           ...state.user,
           words: action.payload,
           isCurrentPlayer: true,
+        },
+      };
+    case RESET_CURRENT_PLAYER:
+      return {
+        ...state,
+        user: {
+          ...state.user,
+          words: null,
+          isCurrentPlayer: false,
         },
       };
     case SET_USER_SELECTED_WORD:

@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
 import Button from 'react-bootstrap/Button';
+import Table from 'react-bootstrap/Table';
 import { useDispatch, useSelector } from 'react-redux';
 import { Redirect } from 'react-router-dom';
 import { startRoomTimer } from '../../store/actions/room';
@@ -26,6 +27,11 @@ const Game = () => {
   const words = useSelector((state) => state.user.user.words);
   const wordHint = useSelector((state) => state.room.room.wordHint);
   const selectedWord = useSelector((state) => state.user.user.selectedWord);
+  const turnWord = useSelector((state) => state.room.room.turnWord);
+  const scoreBoard = useSelector((state) => state.room.room.scoreBoard);
+  const finalScoreBoard = useSelector(
+    (state) => state.room.room.finalScoreBoard
+  );
 
   if (!roomId) {
     return (
@@ -96,6 +102,57 @@ const Game = () => {
             </CoverPanel>
           )}
           {gameState === 'drawing' && <DrawingBoard show={isCurrentPlayer} />}
+          {gameState === 'show turn result' && turnWord && scoreBoard && (
+            <CoverPanel>
+              <Table responsive>
+                <thead>
+                  <tr>
+                    <th colSpan={2}>
+                      The word was{' '}
+                      <span style={{ color: 'green' }}>{turnWord}</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {scoreBoard.map((score) => {
+                    return (
+                      <tr key={score.name}>
+                        <td>{score.name}</td>
+                        <td>
+                          <span style={{ color: 'green' }}>{score.points}</span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </Table>
+            </CoverPanel>
+          )}
+          {gameState === 'game ended' && finalScoreBoard && (
+            <CoverPanel>
+              <Table responsive>
+                <thead>
+                  <tr>
+                    <th colSpan={2}>Final Result</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {finalScoreBoard.map((score) => {
+                    return (
+                      <tr key={score.name}>
+                        <td>{score.name}</td>
+                        <td>
+                          <span style={{ color: 'green' }}>
+                            {score.totalPoints}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </Table>
+            </CoverPanel>
+          )}
         </Col>
       </Row>
     </>

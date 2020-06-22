@@ -8,6 +8,7 @@ import {
   SET_USER_SELECTED_WORD,
   UPDATE_USER_PICKING_REMAINING_TIME,
   PICK_WORD,
+  RESET_CURRENT_PLAYER,
 } from './types';
 
 export const setCurrentUser = (username) => (dispatch) => {
@@ -44,4 +45,8 @@ export const updateUserPickingRemainingTime = (data) => (dispatch) => {
 
 export const userPickAWord = (data) => (dispatch) => {
   dispatch({ type: PICK_WORD, payload: data });
+};
+
+export const resetCurrentPlayer = () => (dispatch) => {
+  dispatch({ type: RESET_CURRENT_PLAYER });
 };

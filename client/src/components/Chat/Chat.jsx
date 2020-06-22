@@ -13,7 +13,7 @@ const Chat = () => {
 
   useEffect(() => {
     if (currentMessage) {
-      addMessage(currentMessage.content);
+      addMessage(currentMessage.content, currentMessage.color);
     }
   }, [currentMessage]);
 
@@ -21,7 +21,7 @@ const Chat = () => {
     if (oldMessages) {
       const len = oldMessages.length;
       for (let i = 0; i < len; i++) {
-        addMessage(oldMessages[i]);
+        addMessage(oldMessages[i].message, oldMessages[i].color);
       }
     }
   }, [oldMessages]);
@@ -43,9 +43,10 @@ const Chat = () => {
     }
   };
 
-  const addMessage = (content) => {
+  const addMessage = (content, color) => {
     const messageList = document.getElementById('messageList');
     const message = document.createElement('div');
+    message.style.color = color;
     message.appendChild(document.createTextNode(content));
     messageList.appendChild(message);
     messageList.scrollTop = messageList.scrollHeight;

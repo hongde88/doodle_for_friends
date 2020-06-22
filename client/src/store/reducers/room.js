@@ -13,6 +13,7 @@ import {
   RECEIVE_ROOM_DRAWING_INFO,
   SET_GAME_STARTED,
   UPDATE_GAME_STATE,
+  RESET_ROOM_WORD_HINT,
 } from '../actions/types';
 
 const initialState = {
@@ -76,7 +77,8 @@ export default function (state = initialState, action) {
       return {
         ...state,
         currentMessage: {
-          content: action.payload,
+          content: action.payload.message,
+          color: action.payload.color,
           timestamp: Date.now(),
         },
       };
@@ -106,6 +108,14 @@ export default function (state = initialState, action) {
         room: {
           ...state.room,
           ...action.payload,
+        },
+      };
+    case RESET_ROOM_WORD_HINT:
+      return {
+        ...state,
+        room: {
+          ...state.room,
+          wordHint: null,
         },
       };
     default:

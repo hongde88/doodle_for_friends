@@ -129,6 +129,11 @@ const DrawingBoard = ({ show }) => {
   ) => {
     setLines([...lines, { x0, y0, x1, y1, color }]);
 
+    if (!ctx) {
+      setCtx(canvasRef.current.getContext('2d'));
+      return;
+    }
+
     if (drawingCanvasInfo && !isCurrentPlayerDrawing) {
       ctx.scale(
         canvasCurrentSize.width / drawingCanvasInfo.width,

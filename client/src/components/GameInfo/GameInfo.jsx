@@ -5,7 +5,6 @@ import Row from 'react-bootstrap/Row';
 import PropType from 'prop-types';
 
 const GameInfo = ({ duration, word }) => {
-  console.log(word);
   return (
     <Row className='align-items-center' style={{ background: 'lightgrey' }}>
       <Col md='2'>
