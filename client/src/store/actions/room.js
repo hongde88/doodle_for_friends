@@ -21,6 +21,8 @@ import {
   SET_GAME_STARTED,
   UPDATE_GAME_STATE,
   RESET_ROOM_WORD_HINT,
+  START_ANOTHER_GAME,
+  QUIT_GAME,
 } from './types';
 
 export const createPrivateRoom = (username, avatarIndex) => (dispatch) => {
@@ -111,4 +113,12 @@ export const updateGameState = (data) => (dispatch) => {
 
 export const resetRoomWordHint = () => (dispatch) => {
   dispatch({ type: RESET_ROOM_WORD_HINT });
+};
+
+export const startAnotherGame = (data) => (dispatch) => {
+  dispatch({ type: START_ANOTHER_GAME, payload: data });
+};
+
+export const quitAndCleanUpGame = (data) => (dispatch) => {
+  dispatch({ type: QUIT_GAME, payload: data });
 };

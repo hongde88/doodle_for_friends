@@ -5,7 +5,13 @@ import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
 import { useDispatch, useSelector } from 'react-redux';
 import { Redirect } from 'react-router-dom';
-import { startRoomTimer } from '../../store/actions/room';
+import {
+  startRoomTimer,
+  startAnotherGame,
+  quitAndCleanUpGame,
+  setRoomLoading,
+  setRoom,
+} from '../../store/actions/room';
 import { userPickAWord, setUserSelectedWord } from '../../store/actions/user';
 import PlayerList from '../PlayerList/PlayerList';
 import GameInfo from '../GameInfo/GameInfo';
@@ -32,6 +38,7 @@ const Game = () => {
   const finalScoreBoard = useSelector(
     (state) => state.room.room.finalScoreBoard
   );
+  const isHost = useSelector((state) => state.user.user.isHost);
 
   if (!roomId) {
     return (
@@ -43,22 +50,15 @@ const Game = () => {
     );
   }
 
-  // if (isCurrentPlayer) {
-  //   switch (gameState) {
-  //     case 'choosing':
-  //       return (
-  //         <div onClick={dispatch({ type: 'pick word', payload: 'sun' })}>
-  //           Choose word
-  //         </div>
-  //       );
-  //     case 'roundResults':
-  //       return <div>Room results</div>;
-  //     case 'endGame':
-  //       return <div>End game</div>;
-  //     default:
-  //       return <div>Drawing</div>;
-  //   }
-  // }
+  const playAgain = () => {
+    dispatch(startAnotherGame(roomId));
+  };
+
+  const quitGame = () => {
+    dispatch(quitAndCleanUpGame(roomId));
+    dispatch(setRoomLoading());
+    dispatch(setRoom({}));
+  };
 
   const startTimer = () => {
     dispatch(startRoomTimer({ duration, roomId }));
@@ -149,6 +149,23 @@ const Game = () => {
                       </tr>
                     );
                   })}
+                  {isHost && (
+                    <tr>
+                      <td>
+                        <Button
+                          style={{ margin: '0 20px' }}
+                          onClick={playAgain}
+                        >
+                          Play Again
+                        </Button>
+                      </td>
+                      <td>
+                        <Button style={{ margin: '0 20px' }} onClick={quitGame}>
+                          Quit
+                        </Button>
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </Table>
             </CoverPanel>

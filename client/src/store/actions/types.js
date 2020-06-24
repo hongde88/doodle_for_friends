@@ -22,6 +22,8 @@ export const SET_GAME_STARTED = 'SET_GAME_STARTED';
 export const UPDATE_GAME_STATE = 'UPDATE_GAME_STATE';
 export const PICK_WORD = 'PICK_WORD';
 export const RESET_ROOM_WORD_HINT = 'RESET_ROOM_WORD_HINT';
+export const START_ANOTHER_GAME = 'START_ANOTHER_GAME';
+export const QUIT_GAME = 'QUIT_GAME';
 
 export const OPEN_SOCKET = 'OPEN_SOCKET';
 

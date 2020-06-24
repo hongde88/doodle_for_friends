@@ -9,6 +9,8 @@ import {
   SEND_ROOM_DRAWING_INFO,
   START_PRIVATE_GAME,
   PICK_WORD,
+  START_ANOTHER_GAME,
+  QUIT_GAME,
 } from './actions/types';
 import {
   setRoom,
@@ -23,8 +25,9 @@ import {
   receiveRoomDrawingInfo,
   setGameStarted,
   updateGameState,
-  startRoomTimer,
+  // startRoomTimer,
   resetRoomWordHint,
+  setRoomNavigatedFrom,
 } from './actions/room';
 import {
   setCurrentUser,
@@ -33,7 +36,7 @@ import {
   setUserOnUserLeft,
   updateUserPickingRemainingTime,
   setUserWordList,
-  setUserSelectedWord,
+  // setUserSelectedWord,
   resetCurrentPlayer,
 } from './actions/user';
 
@@ -98,6 +101,11 @@ const socketMiddleware = (store) => (next) => async (action) => {
         });
         socket.on('reset room word hint', () => {
           store.dispatch(resetRoomWordHint());
+        });
+        socket.on('quit game', () => {
+          store.dispatch(setRoomLoading());
+          store.dispatch(setRoom({}));
+          store.dispatch(setRoomNavigatedFrom(null));
         });
       }
       break;
@@ -189,6 +197,16 @@ const socketMiddleware = (store) => (next) => async (action) => {
     case PICK_WORD:
       if (socket) {
         socket.emit('word picked', action.payload);
+      }
+      break;
+    case START_ANOTHER_GAME:
+      if (socket) {
+        socket.emit('start another game', action.payload);
+      }
+      break;
+    case QUIT_GAME:
+      if (socket) {
+        socket.emit('quit game', action.payload);
       }
       break;
     default:

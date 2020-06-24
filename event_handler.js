@@ -49,8 +49,59 @@ class EventHandler {
       this.handleDisconnectOrLeaveEvent('disconnect')
     );
 
+    // start another game
+    this.socket.on('start another game', this.handleStartAnotherGame());
+
+    // quit game
+    this.socket.on('quit game', this.handleQuitGame());
+
     // leave handler
     this.socket.on('leave', this.handleDisconnectOrLeaveEvent('leave'));
+  }
+
+  handleStartAnotherGame() {
+    return (data) => {
+      const roomId = data || this.socket.roomId;
+      const roomInfo = rooms[roomId];
+
+      if (roomId && roomInfo) {
+        this.cleanUpPreviousTurn(roomId);
+        const currentRound = 1;
+        roomInfo.currentRound = currentRound;
+        roomInfo.gameStarted = true;
+        const currentPlayerIdx = 0;
+        roomInfo.currentPlayerIdx = currentPlayerIdx;
+
+        this.startTurnOrRound(
+          roomId,
+          currentPlayerIdx,
+          true,
+          true,
+          currentRound
+        );
+      }
+    };
+  }
+
+  handleQuitGame() {
+    return (data) => {
+      const roomId = data || this.socket.roomId;
+
+      if (roomId && rooms[roomId]) {
+        delete rooms[roomId];
+        delete messageCache[roomId];
+        this.socket.broadcast.emit('quit game');
+        this.io.in(roomId).clients((error, socketIds) => {
+          if (error) {
+            console.error(error);
+          } else {
+            for (const socketId of socketIds) {
+              this.io.sockets.sockets[socketId].leave(roomId);
+            }
+          }
+        });
+      }
+    };
   }
 
   handleSetGameState(roomId, state, data) {
