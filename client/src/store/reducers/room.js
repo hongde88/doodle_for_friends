@@ -100,7 +100,10 @@ export default function (state = initialState, action) {
     case SET_GAME_STARTED:
       return {
         ...state,
-        inGame: true,
+        room: {
+          ...state.room,
+          inGame: true,
+        },
       };
     case UPDATE_GAME_STATE:
       return {

@@ -9,6 +9,7 @@ import {
   UPDATE_USER_PICKING_REMAINING_TIME,
   PICK_WORD,
   RESET_CURRENT_PLAYER,
+  LEAVE_A_ROOM,
 } from './types';
 
 export const setCurrentUser = (username) => (dispatch) => {
@@ -49,4 +50,8 @@ export const userPickAWord = (data) => (dispatch) => {
 
 export const resetCurrentPlayer = () => (dispatch) => {
   dispatch({ type: RESET_CURRENT_PLAYER });
+};
+
+export const userLeaveRoom = () => (dispatch) => {
+  dispatch({ type: LEAVE_A_ROOM });
 };

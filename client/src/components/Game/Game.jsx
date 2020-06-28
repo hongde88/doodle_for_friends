@@ -1,24 +1,31 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
 import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
 import { useDispatch, useSelector } from 'react-redux';
-import { Redirect } from 'react-router-dom';
+import { Redirect, useParams } from 'react-router-dom';
 import {
   startRoomTimer,
   startAnotherGame,
   quitAndCleanUpGame,
   setRoomLoading,
   setRoom,
+  setRoomNavigatedFrom,
 } from '../../store/actions/room';
-import { userPickAWord, setUserSelectedWord } from '../../store/actions/user';
+import {
+  userPickAWord,
+  setUserSelectedWord,
+  userLeaveRoom,
+  setUserLoading,
+} from '../../store/actions/user';
 import PlayerList from '../PlayerList/PlayerList';
 import GameInfo from '../GameInfo/GameInfo';
 import DrawingBoard from '../DrawingBoard/DrawingBoard';
 import CoverPanel from '../CoverPanel/CoverPanel';
 
 const Game = () => {
+  const { id } = useParams();
   const dispatch = useDispatch();
   const duration = useSelector((state) => state.room.room.drawTime);
   const roomId = useSelector((state) => state.room.room.roomId);
@@ -39,6 +46,17 @@ const Game = () => {
     (state) => state.room.room.finalScoreBoard
   );
   const isHost = useSelector((state) => state.user.user.isHost);
+
+  useEffect(() => {
+    window.onpopstate = (e) => {
+      dispatch(userLeaveRoom());
+      dispatch(setRoomLoading());
+      dispatch(setUserLoading());
+      if (id) {
+        dispatch(setRoomNavigatedFrom(id));
+      }
+    };
+  });
 
   if (!roomId) {
     return (

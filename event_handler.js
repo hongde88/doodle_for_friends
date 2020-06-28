@@ -56,7 +56,7 @@ class EventHandler {
     this.socket.on('quit game', this.handleQuitGame());
 
     // leave handler
-    this.socket.on('leave', this.handleDisconnectOrLeaveEvent('leave'));
+    this.socket.on('leave a room', this.handleDisconnectOrLeaveEvent('leave'));
   }
 
   handleStartAnotherGame() {
@@ -145,6 +145,10 @@ class EventHandler {
         let remainingTime = data + 1;
 
         const choosingInterval = setInterval(() => {
+          if (!rooms[roomId]) {
+            return;
+          }
+
           remainingTime--;
 
           this.socket.emit('word picking remaining time', { remainingTime });
@@ -342,13 +346,15 @@ class EventHandler {
         const currentPlayerIdx = 0;
         rooms[roomId].currentPlayerIdx = currentPlayerIdx;
         setTimeout(() => {
-          this.startTurnOrRound(
-            roomId,
-            currentPlayerIdx,
-            true,
-            false,
-            rooms[roomId].currentRound
-          );
+          if (roomId && rooms[roomId]) {
+            this.startTurnOrRound(
+              roomId,
+              currentPlayerIdx,
+              true,
+              false,
+              rooms[roomId].currentRound
+            );
+          }
         }, 4000);
       } else {
         // end game
@@ -512,6 +518,8 @@ class EventHandler {
         const currentPlayerIdx = 0;
         rooms[roomId].currentPlayerIdx = currentPlayerIdx;
 
+        rooms[roomId].inGame = true;
+
         this.startTurnOrRound(
           roomId,
           currentPlayerIdx,
@@ -555,11 +563,13 @@ class EventHandler {
     }
 
     setTimeout(() => {
-      this.io.to(currentPlayerSocketId).emit('pick words', randomWords);
+      if (currentPlayerSocketId && roomId && rooms[roomId]) {
+        this.io.to(currentPlayerSocketId).emit('pick words', randomWords);
 
-      this.handleSetGameState(roomId, 'choosing', {
-        currentPlayerName,
-      });
+        this.handleSetGameState(roomId, 'choosing', {
+          currentPlayerName,
+        });
+      }
     }, 2000);
   }
 
@@ -615,6 +625,9 @@ class EventHandler {
         gameStarted: rooms[roomId].gameStarted,
         numUsers: rooms[roomId].numUsers,
         gameState: rooms[roomId].gameState,
+        inGame: rooms[roomId].inGame,
+        currentRound: rooms[roomId].currentRound,
+        currentPlayerName: rooms[roomId].currentPlayer,
       });
 
       if (callback) {
@@ -633,7 +646,7 @@ class EventHandler {
     return (data) => {
       const roomId = data.roomId || this.socket.roomId;
 
-      if (roomId) {
+      if (roomId && rooms[roomId]) {
         rooms[roomId].guessRemainingTime = data.duration;
 
         rooms[roomId].guessingInterval = setInterval(() => {

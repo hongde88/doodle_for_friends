@@ -11,6 +11,7 @@ import {
   PICK_WORD,
   START_ANOTHER_GAME,
   QUIT_GAME,
+  LEAVE_A_ROOM,
 } from './actions/types';
 import {
   setRoom,
@@ -207,6 +208,11 @@ const socketMiddleware = (store) => (next) => async (action) => {
     case QUIT_GAME:
       if (socket) {
         socket.emit('quit game', action.payload);
+      }
+      break;
+    case LEAVE_A_ROOM:
+      if (socket) {
+        socket.emit('leave a room');
       }
       break;
     default:
