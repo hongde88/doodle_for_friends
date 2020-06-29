@@ -57,7 +57,7 @@ const Palette = ({ onPaletteUpdate, onCanvasClear }) => {
           onClick={() => onPaletteUpdate('erase', 15)}
         />
       </div>
-      <div className={`${styles.clear}`} onClick={() => onCanvasClear()}>
+      <div className={`${styles.clear}`} onClick={() => onCanvasClear(true)}>
         <DeleteIcon />
       </div>
     </div>

@@ -27,7 +27,7 @@ const Chat = () => {
   }, [oldMessages]);
 
   const sendChat = (e) => {
-    if (e.key === 'Enter') {
+    if (e.keyCode === 13) {
       const message = e.target.value.trim();
       if (message.length !== 0) {
         dispatch(

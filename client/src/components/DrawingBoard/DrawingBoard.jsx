@@ -139,7 +139,7 @@ const DrawingBoard = ({ show }) => {
   }, [drawingInfo]);
 
   useEffect(() => {
-    if (clearCanvas) {
+    if (clearCanvas && clearCanvas.action) {
       onCanvasClear();
     }
   }, [clearCanvas]);
@@ -205,16 +205,23 @@ const DrawingBoard = ({ show }) => {
   //     color: color,
   //   });
   // };
-  const onCanvasClear = () => {
+  const onCanvasClear = (emit) => {
     if (!ctx) {
       setCtx(canvasRef.current.getContext('2d'));
       return;
     }
 
+    const oldStyle = ctx.fillStyle;
+
     ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
     setLines([]);
-    dispatch(sendOnCanvasClear());
+
+    ctx.fillStyle = oldStyle;
+
+    if (emit) {
+      dispatch(sendOnCanvasClear());
+    }
   };
 
   const onPaletteUpdate = (type, val) => {

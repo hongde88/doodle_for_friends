@@ -9,7 +9,7 @@ const Timer = ({ startTime }) => {
     (state) => state.room.guessingRemainingTime
   );
   return (
-    <div style={{ width: 60, height: 'auto' }}>
+    <div style={{ width: 60, height: 'auto', margin: '10px' }}>
       <CircularProgressbar
         value={guessingRemainingTime || startTime}
         text={`${
@@ -18,6 +18,11 @@ const Timer = ({ startTime }) => {
         }`}
         maxValue={startTime}
         counterClockwise={true}
+        styles={{
+          text: {
+            fontSize: '40px',
+          },
+        }}
       />
     </div>
   );

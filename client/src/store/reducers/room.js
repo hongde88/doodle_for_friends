@@ -15,6 +15,7 @@ import {
   UPDATE_GAME_STATE,
   RESET_ROOM_WORD_HINT,
   SET_ROOM_CLEAR_CANVAS,
+  RESET_ROOM_FINAL_SCORE_BOARD,
 } from '../actions/types';
 
 const initialState = {
@@ -127,7 +128,18 @@ export default function (state = initialState, action) {
         ...state,
         room: {
           ...state.room,
-          clearCanvas: true,
+          clearCanvas: {
+            action: true,
+            timestamp: Date.now(),
+          },
+        },
+      };
+    case RESET_ROOM_FINAL_SCORE_BOARD:
+      return {
+        ...state,
+        room: {
+          ...state.room,
+          finalScoreBoard: null,
         },
       };
     default:

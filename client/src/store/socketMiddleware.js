@@ -29,8 +29,9 @@ import {
   updateGameState,
   // startRoomTimer,
   resetRoomWordHint,
-  setRoomNavigatedFrom,
+  // setRoomNavigatedFrom,
   setRoomClearCanvas,
+  resetRoomFinalScoreBoard,
 } from './actions/room';
 import {
   setCurrentUser,
@@ -39,7 +40,7 @@ import {
   setUserOnUserLeft,
   updateUserPickingRemainingTime,
   setUserWordList,
-  // setUserSelectedWord,
+  setUserSelectedWord,
   resetCurrentPlayer,
 } from './actions/user';
 
@@ -79,6 +80,9 @@ const socketMiddleware = (store) => (next) => async (action) => {
         });
         socket.on('in game', (data) => {
           store.dispatch(updateGameState(data));
+          if (data && data.gameState && data.gameState === 'show turn result') {
+            store.dispatch(setUserSelectedWord(null));
+          }
         });
         socket.on('pick words', (data) => {
           store.dispatch(setUserWordList(data));
@@ -98,6 +102,7 @@ const socketMiddleware = (store) => (next) => async (action) => {
         });
         socket.on('set game started', () => {
           store.dispatch(setGameStarted());
+          store.dispatch(resetRoomFinalScoreBoard());
         });
         socket.on('clear current player', () => {
           store.dispatch(resetCurrentPlayer());
@@ -105,11 +110,12 @@ const socketMiddleware = (store) => (next) => async (action) => {
         socket.on('reset room word hint', () => {
           store.dispatch(resetRoomWordHint());
         });
-        socket.on('quit game', () => {
-          store.dispatch(setRoomLoading());
-          store.dispatch(setRoom({}));
-          store.dispatch(setRoomNavigatedFrom(null));
-        });
+        // socket.on('quit game', (data) => {
+        // store.dispatch(setRoomLoading());
+        // store.dispatch(setRoom({}));
+        // store.dispatch(setRoomNavigatedFrom(data.roomId));
+        // store.dispatch(updateGameState(data));
+        // });
         socket.on('clear canvas', () => {
           store.dispatch(setRoomClearCanvas());
         });

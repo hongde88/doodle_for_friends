@@ -4,13 +4,13 @@ import Row from 'react-bootstrap/Row';
 import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
 import { useDispatch, useSelector } from 'react-redux';
-import { Redirect, useParams } from 'react-router-dom';
+import { Redirect, useParams, useHistory } from 'react-router-dom';
 import {
   startRoomTimer,
   startAnotherGame,
   quitAndCleanUpGame,
   setRoomLoading,
-  setRoom,
+  // setRoom,
   setRoomNavigatedFrom,
 } from '../../store/actions/room';
 import {
@@ -25,6 +25,7 @@ import DrawingBoard from '../DrawingBoard/DrawingBoard';
 import CoverPanel from '../CoverPanel/CoverPanel';
 
 const Game = () => {
+  const history = useHistory();
   const { id } = useParams();
   const dispatch = useDispatch();
   const duration = useSelector((state) => state.room.room.drawTime);
@@ -58,7 +59,14 @@ const Game = () => {
     };
   });
 
+  useEffect(() => {
+    if (gameState === 'quit') {
+      history.push(`/rooms/${roomId}`);
+    }
+  }, [gameState]);
+
   if (!roomId) {
+    dispatch(setRoomNavigatedFrom(id));
     return (
       <Redirect
         to={{
@@ -73,9 +81,10 @@ const Game = () => {
   };
 
   const quitGame = () => {
+    // history.go(-1);
     dispatch(quitAndCleanUpGame(roomId));
-    dispatch(setRoomLoading());
-    dispatch(setRoom({}));
+    // dispatch(setRoomLoading());
+    // dispatch(setRoom({}));
   };
 
   const startTimer = () => {
@@ -94,6 +103,7 @@ const Game = () => {
       <GameInfo
         duration={duration}
         word={isCurrentPlayer ? selectedWord : wordHint}
+        currentRound={currentRound > 0 ? currentRound : null}
       />
       <Row>
         <Col md='2'>

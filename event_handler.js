@@ -79,6 +79,10 @@ class EventHandler {
 
       if (roomId && roomInfo) {
         this.cleanUpPreviousTurn(roomId);
+        // clear previous totalPoints
+        Object.keys(roomInfo.users).forEach((name) => {
+          roomInfo.users[name].totalPoints = 0;
+        });
         const currentRound = 1;
         roomInfo.currentRound = currentRound;
         roomInfo.gameStarted = true;
@@ -101,18 +105,23 @@ class EventHandler {
       const roomId = data || this.socket.roomId;
 
       if (roomId && rooms[roomId]) {
-        delete rooms[roomId];
-        delete messageCache[roomId];
-        this.socket.broadcast.emit('quit game');
-        this.io.in(roomId).clients((error, socketIds) => {
-          if (error) {
-            console.error(error);
-          } else {
-            for (const socketId of socketIds) {
-              this.io.sockets.sockets[socketId].leave(roomId);
-            }
-          }
+        // delete rooms[roomId];
+        // delete messageCache[roomId];
+        // this.socket.broadcast.emit('quit game', { roomId });
+        rooms[roomId].inGame = false;
+        // this.io.to(roomId).emit('quit game', { gameState: 'quit', inGame: false });
+        this.handleSetGameState(roomId, 'quit', {
+          inGame: false,
         });
+        // this.io.in(roomId).clients((error, socketIds) => {
+        //   if (error) {
+        //     console.error(error);
+        //   } else {
+        //     for (const socketId of socketIds) {
+        //       this.io.sockets.sockets[socketId].leave(roomId);
+        //     }
+        //   }
+        // });
       }
     };
   }
@@ -347,44 +356,54 @@ class EventHandler {
       });
 
       // reset everything for the next turn
-      this.cleanUpPreviousTurn(roomId);
-      if (rooms[roomId].currentPlayerIdx < rooms[roomId].numUsers - 1) {
-        // next turn
-        const currentPlayerIdx = rooms[roomId].currentPlayerIdx + 1;
-        rooms[roomId].currentPlayerIdx = currentPlayerIdx;
-        this.startTurnOrRound(roomId, currentPlayerIdx, false, false);
-      } else if (rooms[roomId].currentRound < rooms[roomId].maxRound) {
-        // next round
-        rooms[roomId].currentRound++;
-        const currentPlayerIdx = 0;
-        rooms[roomId].currentPlayerIdx = currentPlayerIdx;
-        setTimeout(() => {
-          if (roomId && rooms[roomId]) {
-            this.startTurnOrRound(
-              roomId,
-              currentPlayerIdx,
-              true,
-              false,
-              rooms[roomId].currentRound
-            );
-          }
-        }, 4000);
-      } else {
-        // end game
-        // game is over display the final points
-        setTimeout(() => {
-          if (roomId && rooms[roomId]) {
-            this.handleSetGameState(roomId, 'game ended', {
-              finalScoreBoard: Object.keys(rooms[roomId].users)
-                .map((user) => ({
-                  name: user,
-                  totalPoints: rooms[roomId].users[user].totalPoints,
-                }))
-                .sort((a, b) => b.totalPoints - a.totalPoints),
-            });
-          }
-        }, 4000);
-      }
+      setTimeout(() => {
+        this.cleanUpPreviousTurn(roomId);
+        if (
+          roomId &&
+          rooms[roomId] &&
+          rooms[roomId].currentPlayerIdx < rooms[roomId].numUsers - 1
+        ) {
+          // next turn
+          const currentPlayerIdx = rooms[roomId].currentPlayerIdx + 1;
+          rooms[roomId].currentPlayerIdx = currentPlayerIdx;
+          this.startTurnOrRound(roomId, currentPlayerIdx, false, false);
+        } else if (
+          roomId &&
+          rooms[roomId] &&
+          rooms[roomId].currentRound < rooms[roomId].maxRound
+        ) {
+          // next round
+          rooms[roomId].currentRound++;
+          const currentPlayerIdx = 0;
+          rooms[roomId].currentPlayerIdx = currentPlayerIdx;
+          setTimeout(() => {
+            if (roomId && rooms[roomId]) {
+              this.startTurnOrRound(
+                roomId,
+                currentPlayerIdx,
+                true,
+                false,
+                rooms[roomId].currentRound
+              );
+            }
+          }, 4000);
+        } else {
+          // end game
+          // game is over display the final points
+          setTimeout(() => {
+            if (roomId && rooms[roomId]) {
+              this.handleSetGameState(roomId, 'game ended', {
+                finalScoreBoard: Object.keys(rooms[roomId].users)
+                  .map((user) => ({
+                    name: user,
+                    totalPoints: rooms[roomId].users[user].totalPoints,
+                  }))
+                  .sort((a, b) => b.totalPoints - a.totalPoints),
+              });
+            }
+          }, 4000);
+        }
+      }, 1000);
     }
   }
 
@@ -641,6 +660,9 @@ class EventHandler {
         inGame: rooms[roomId].inGame,
         currentRound: rooms[roomId].currentRound,
         currentPlayerName: rooms[roomId].currentPlayer,
+        wordHint: rooms[roomId].wordHint
+          ? rooms[roomId].wordHint.join(' ')
+          : null,
       });
 
       if (callback) {
