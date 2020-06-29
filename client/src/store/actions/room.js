@@ -23,6 +23,8 @@ import {
   RESET_ROOM_WORD_HINT,
   START_ANOTHER_GAME,
   QUIT_GAME,
+  SEND_ON_CANVAS_CLEAR,
+  SET_ROOM_CLEAR_CANVAS,
 } from './types';
 
 export const createPrivateRoom = (username, avatarIndex) => (dispatch) => {
@@ -121,4 +123,12 @@ export const startAnotherGame = (data) => (dispatch) => {
 
 export const quitAndCleanUpGame = (data) => (dispatch) => {
   dispatch({ type: QUIT_GAME, payload: data });
+};
+
+export const sendOnCanvasClear = () => (dispatch) => {
+  dispatch({ type: SEND_ON_CANVAS_CLEAR });
+};
+
+export const setRoomClearCanvas = () => (dispatch) => {
+  dispatch({ type: SET_ROOM_CLEAR_CANVAS });
 };

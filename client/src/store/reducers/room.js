@@ -14,6 +14,7 @@ import {
   SET_GAME_STARTED,
   UPDATE_GAME_STATE,
   RESET_ROOM_WORD_HINT,
+  SET_ROOM_CLEAR_CANVAS,
 } from '../actions/types';
 
 const initialState = {
@@ -119,6 +120,14 @@ export default function (state = initialState, action) {
         room: {
           ...state.room,
           wordHint: null,
+        },
+      };
+    case SET_ROOM_CLEAR_CANVAS:
+      return {
+        ...state,
+        room: {
+          ...state.room,
+          clearCanvas: true,
         },
       };
     default:

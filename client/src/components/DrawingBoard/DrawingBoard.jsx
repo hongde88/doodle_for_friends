@@ -1,8 +1,14 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import styles from './DrawingBoard.module.css';
-import { sendRoomDrawingInfo } from '../../store/actions/room';
+import {
+  sendRoomDrawingInfo,
+  sendOnCanvasClear,
+} from '../../store/actions/room';
 import PropType from 'prop-types';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
+import Palette from '../Palette/Palette';
 
 const useWindowSize = () => {
   const [size, setSize] = useState(null);
@@ -21,7 +27,12 @@ const useWindowSize = () => {
 
 const DrawingBoard = ({ show }) => {
   const canvasRef = useRef(null);
-  const [current, setCurrent] = useState({ color: 'black', x: 0, y: 0 });
+  const [current, setCurrent] = useState({
+    color: 'black',
+    x: 0,
+    y: 0,
+    thickness: 2,
+  });
   const [drawing, setDrawing] = useState(false);
   const [canvasOriginalSize, setCanvasOriginalSize] = useState({
     width: 0,
@@ -36,6 +47,7 @@ const DrawingBoard = ({ show }) => {
   const dispatch = useDispatch();
   const windowSize = useWindowSize();
   const [lines, setLines] = useState([]);
+  const clearCanvas = useSelector((state) => state.room.room.clearCanvas);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -94,7 +106,15 @@ const DrawingBoard = ({ show }) => {
       ctx.scale(xScale, yScale);
 
       for (const line of lines) {
-        drawLine(line.x0, line.y0, line.x1, line.y1, line.color, false);
+        drawLine(
+          line.x0,
+          line.y0,
+          line.x1,
+          line.y1,
+          line.color,
+          line.thickness,
+          false
+        );
       }
 
       ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -111,11 +131,18 @@ const DrawingBoard = ({ show }) => {
         drawingInfo.x1,
         drawingInfo.y1,
         drawingInfo.color,
+        drawingInfo.thickness,
         false,
         drawingInfo.drawingCanvasInfo
       );
     }
   }, [drawingInfo]);
+
+  useEffect(() => {
+    if (clearCanvas) {
+      onCanvasClear();
+    }
+  }, [clearCanvas]);
 
   const drawLine = (
     x0,
@@ -123,11 +150,12 @@ const DrawingBoard = ({ show }) => {
     x1,
     y1,
     color,
+    thickness,
     emit,
     drawingCanvasInfo,
     isCurrentPlayerDrawing
   ) => {
-    setLines([...lines, { x0, y0, x1, y1, color }]);
+    setLines([...lines, { x0, y0, x1, y1, color, thickness }]);
 
     if (!ctx) {
       setCtx(canvasRef.current.getContext('2d'));
@@ -145,9 +173,10 @@ const DrawingBoard = ({ show }) => {
     ctx.moveTo(x0, y0);
     ctx.lineTo(x1, y1);
     ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
-    ctx.stroke();
+    ctx.lineWidth = thickness;
+    ctx.lineJoin = 'round';
     ctx.closePath();
+    ctx.stroke();
 
     if (drawingCanvasInfo && !isCurrentPlayerDrawing) {
       ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -157,14 +186,55 @@ const DrawingBoard = ({ show }) => {
       return;
     }
 
-    dispatch(sendRoomDrawingInfo({ x0, y0, x1, y1, color, drawingCanvasInfo }));
+    dispatch(
+      sendRoomDrawingInfo({
+        x0,
+        y0,
+        x1,
+        y1,
+        color,
+        thickness,
+        drawingCanvasInfo,
+      })
+    );
   };
 
-  const onColorUpdate = (color) => {
-    setCurrent({
-      ...current,
-      color: color,
-    });
+  // const onColorUpdate = (color) => {
+  //   setCurrent({
+  //     ...current,
+  //     color: color,
+  //   });
+  // };
+  const onCanvasClear = () => {
+    if (!ctx) {
+      setCtx(canvasRef.current.getContext('2d'));
+      return;
+    }
+
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    setLines([]);
+    dispatch(sendOnCanvasClear());
+  };
+
+  const onPaletteUpdate = (type, val) => {
+    if (type === 'color') {
+      setCurrent({
+        ...current,
+        color: val,
+      });
+    } else if (type === 'thickness') {
+      setCurrent({
+        ...current,
+        thickness: val,
+      });
+    } else {
+      setCurrent({
+        ...current,
+        color: 'white',
+        thickness: val,
+      });
+    }
   };
 
   // limit the number of events per second
@@ -221,6 +291,7 @@ const DrawingBoard = ({ show }) => {
       x,
       y,
       current.color,
+      current.thickness,
       true,
       canvasCurrentSize,
       true
@@ -244,6 +315,7 @@ const DrawingBoard = ({ show }) => {
       x,
       y,
       current.color,
+      current.thickness,
       true,
       canvasCurrentSize,
       true
@@ -257,66 +329,87 @@ const DrawingBoard = ({ show }) => {
   };
 
   return (
-    <div
-      style={
-        show
-          ? {
-              height: 'calc(100vh - 80px - 60px)',
-              border: '1px solid black',
-              marginLeft: 20,
-            }
-          : {
-              pointerEvents: 'none',
-              opacity: '0.4',
-              height: 'calc(100vh - 80px - 60px)',
-              border: '1px solid black',
-              marginLeft: 20,
-            }
-      }
-    >
-      <canvas
-        className={styles.whiteboard}
-        ref={canvasRef}
-        onMouseDown={onMouseDown}
-        onMouseUp={onMouseUp}
-        onMouseOut={onMouseUp}
-        onMouseMove={throttle(onMouseMove, 50)}
-        onTouchStart={onMouseDown}
-        onTouchEnd={onMouseUp}
-        onTouchCancel={onMouseUp}
-        onTouchMove={throttle(onMouseMove, 50)}
-      />
-      <div className={styles.colors}>
+    <Row>
+      <Col md='11'>
         <div
-          className={`${styles.color} ${styles.black}`}
-          onClick={() => onColorUpdate('black')}
-        ></div>
+          style={
+            show
+              ? {
+                  height: 'calc(100vh - 80px - 60px)',
+                  border: '1px solid black',
+                  marginLeft: 20,
+                }
+              : {
+                  pointerEvents: 'none',
+                  opacity: '0.4',
+                  height: 'calc(100vh - 80px - 60px)',
+                  border: '1px solid black',
+                  marginLeft: 20,
+                }
+          }
+        >
+          <canvas
+            className={styles.whiteboard}
+            ref={canvasRef}
+            onMouseDown={onMouseDown}
+            onMouseUp={onMouseUp}
+            onMouseOut={onMouseUp}
+            onMouseMove={throttle(onMouseMove, 50)}
+            onTouchStart={onMouseDown}
+            onTouchEnd={onMouseUp}
+            onTouchCancel={onMouseUp}
+            onTouchMove={throttle(onMouseMove, 50)}
+          />
+        </div>
+      </Col>
+      <Col md='1'>
         <div
-          className={`${styles.color} ${styles.red}`}
-          onClick={() => onColorUpdate('red')}
-        ></div>
-        <div
-          className={`${styles.color} ${styles.green}`}
-          onClick={() => onColorUpdate('green')}
-        ></div>
-        <div
-          className={`${styles.color} ${styles.blue}`}
-          onClick={() => onColorUpdate('blue')}
-        ></div>
-        <div
-          className={`${styles.color} ${styles.orange}`}
-          onClick={() => onColorUpdate('orange')}
-        ></div>
-        <div
-          className={`${styles.color} ${styles.yellow}`}
-          onClick={() => onColorUpdate('yellow')}
-        ></div>
-        <div
-          className={`${styles.color} ${styles.purple}`}
-          onClick={() => onColorUpdate('purple')}
-        ></div>
-      </div>
-    </div>
+          style={
+            show
+              ? null
+              : {
+                  pointerEvents: 'none',
+                  opacity: '0.4',
+                }
+          }
+        >
+          <Palette
+            onPaletteUpdate={onPaletteUpdate}
+            onCanvasClear={onCanvasClear}
+          />
+        </div>
+        {/* <div className={styles.colors}>
+          <div
+            className={`${styles.color} ${styles.black}`}
+            onClick={() => onColorUpdate('black')}
+          ></div>
+          <div
+            className={`${styles.color} ${styles.red}`}
+            onClick={() => onColorUpdate('red')}
+          ></div>
+          <div
+            className={`${styles.color} ${styles.green}`}
+            onClick={() => onColorUpdate('green')}
+          ></div>
+          <div
+            className={`${styles.color} ${styles.blue}`}
+            onClick={() => onColorUpdate('blue')}
+          ></div>
+          <div
+            className={`${styles.color} ${styles.orange}`}
+            onClick={() => onColorUpdate('orange')}
+          ></div>
+          <div
+            className={`${styles.color} ${styles.yellow}`}
+            onClick={() => onColorUpdate('yellow')}
+          ></div>
+          <div
+            className={`${styles.color} ${styles.purple}`}
+            onClick={() => onColorUpdate('purple')}
+          ></div>
+        </div> */}
+      </Col>
+    </Row>
   );
 };
 

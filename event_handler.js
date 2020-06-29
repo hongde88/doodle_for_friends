@@ -57,6 +57,19 @@ class EventHandler {
 
     // leave handler
     this.socket.on('leave a room', this.handleDisconnectOrLeaveEvent('leave'));
+
+    // clear canvas handler
+    this.socket.on('clear canvas', this.handleClearCanvas());
+  }
+
+  handleClearCanvas() {
+    return () => {
+      const roomId = this.socket.roomId;
+
+      if (roomId && rooms[roomId]) {
+        this.socket.broadcast.emit('clear canvas');
+      }
+    };
   }
 
   handleStartAnotherGame() {

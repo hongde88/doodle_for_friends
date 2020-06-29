@@ -12,6 +12,7 @@ import {
   START_ANOTHER_GAME,
   QUIT_GAME,
   LEAVE_A_ROOM,
+  SEND_ON_CANVAS_CLEAR,
 } from './actions/types';
 import {
   setRoom,
@@ -29,6 +30,7 @@ import {
   // startRoomTimer,
   resetRoomWordHint,
   setRoomNavigatedFrom,
+  setRoomClearCanvas,
 } from './actions/room';
 import {
   setCurrentUser,
@@ -107,6 +109,9 @@ const socketMiddleware = (store) => (next) => async (action) => {
           store.dispatch(setRoomLoading());
           store.dispatch(setRoom({}));
           store.dispatch(setRoomNavigatedFrom(null));
+        });
+        socket.on('clear canvas', () => {
+          store.dispatch(setRoomClearCanvas());
         });
       }
       break;
@@ -213,6 +218,11 @@ const socketMiddleware = (store) => (next) => async (action) => {
     case LEAVE_A_ROOM:
       if (socket) {
         socket.emit('leave a room');
+      }
+      break;
+    case SEND_ON_CANVAS_CLEAR:
+      if (socket) {
+        socket.emit('clear canvas');
       }
       break;
     default:
