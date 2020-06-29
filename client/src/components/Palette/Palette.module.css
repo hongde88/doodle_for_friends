@@ -79,3 +79,26 @@
   margin: 5px 0;
   transform: scale(1.9);
 }
+
+@media only screen and (max-width: 768px) {
+  .colors {
+    flex-direction: row;
+  }
+
+  .color {
+    padding: 10px;
+    margin: 5px 5px;
+  }
+
+  .thickness {
+    margin: 5px 5px;
+  }
+
+  .eraser {
+    margin: 5px 5px;
+  }
+
+  .clear {
+    margin: 5px 5px;
+  }
+}
