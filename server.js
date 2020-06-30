@@ -21,7 +21,8 @@ app.use(express.json({ extended: false }));
 // Serve static assets in production
 if (process.env.NODE_ENV === 'production') {
   // Set static folder
-  app.use(express.static('client/build'));
+  // app.use(express.static('client/build'));
+  app.use(express.static(path.join(__dirname, 'client', 'build')));
 
   // Allow CORS
   app.use((req, res, next) => {
