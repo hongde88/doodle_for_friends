@@ -44,7 +44,7 @@ import {
   resetCurrentPlayer,
 } from './actions/user';
 
-const URL = 'http://localhost:5001';
+const URL = process.env.SERVER_URL || 'http://localhost:5001';
 let socket = null;
 
 const socketMiddleware = (store) => (next) => async (action) => {
