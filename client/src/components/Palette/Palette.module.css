@@ -1,0 +1,104 @@
+.colors {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.color {
+  align-self: center;
+  height: 32px;
+  width: 32px;
+  padding: 10px;
+  margin: 5px 0;
+}
+
+.color.black {
+  background-color: black;
+}
+
+.color.red {
+  background-color: red;
+}
+
+.color.green {
+  background-color: green;
+}
+
+.color.blue {
+  background-color: blue;
+}
+
+.color.orange {
+  background-color: orange;
+}
+
+.color.yellow {
+  background-color: yellow;
+}
+
+.color.purple {
+  background-color: purple;
+}
+
+.thickness {
+  align-self: center;
+  background-color: black;
+  border-radius: 50%;
+  /* padding: 10px; */
+  margin: 5px 0;
+}
+
+.thickness.onepx {
+  width: 10px;
+  height: 10px;
+}
+
+.thickness.twopx {
+  width: 15px;
+  height: 15px;
+}
+
+.thickness.threepx {
+  width: 20px;
+  height: 20px;
+}
+
+.thickness.fourpx {
+  width: 25px;
+  height: 25px;
+}
+
+.eraser {
+  align-self: center;
+  margin: 5px 0;
+  transform: scale(0.9);
+}
+
+.clear {
+  align-self: center;
+  margin: 5px 0;
+  transform: scale(1.9);
+}
+
+@media only screen and (max-width: 768px) {
+  .colors {
+    flex-direction: row;
+  }
+
+  .color {
+    padding: 10px;
+    margin: 5px 5px;
+  }
+
+  .thickness {
+    margin: 5px 5px;
+  }
+
+  .eraser {
+    margin: 5px 5px;
+  }
+
+  .clear {
+    margin: 5px 5px;
+  }
+}

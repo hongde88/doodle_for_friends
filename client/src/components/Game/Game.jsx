@@ -1,17 +1,32 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
 import Button from 'react-bootstrap/Button';
+import Table from 'react-bootstrap/Table';
 import { useDispatch, useSelector } from 'react-redux';
-import { Redirect } from 'react-router-dom';
-import { startRoomTimer } from '../../store/actions/room';
-import { userPickAWord, setUserSelectedWord } from '../../store/actions/user';
+import { Redirect, useParams, useHistory } from 'react-router-dom';
+import {
+  startRoomTimer,
+  startAnotherGame,
+  quitAndCleanUpGame,
+  setRoomLoading,
+  // setRoom,
+  setRoomNavigatedFrom,
+} from '../../store/actions/room';
+import {
+  userPickAWord,
+  setUserSelectedWord,
+  userLeaveRoom,
+  setUserLoading,
+} from '../../store/actions/user';
 import PlayerList from '../PlayerList/PlayerList';
 import GameInfo from '../GameInfo/GameInfo';
 import DrawingBoard from '../DrawingBoard/DrawingBoard';
 import CoverPanel from '../CoverPanel/CoverPanel';
 
 const Game = () => {
+  const history = useHistory();
+  const { id } = useParams();
   const dispatch = useDispatch();
   const duration = useSelector((state) => state.room.room.drawTime);
   const roomId = useSelector((state) => state.room.room.roomId);
@@ -26,8 +41,32 @@ const Game = () => {
   const words = useSelector((state) => state.user.user.words);
   const wordHint = useSelector((state) => state.room.room.wordHint);
   const selectedWord = useSelector((state) => state.user.user.selectedWord);
+  const turnWord = useSelector((state) => state.room.room.turnWord);
+  const scoreBoard = useSelector((state) => state.room.room.scoreBoard);
+  const finalScoreBoard = useSelector(
+    (state) => state.room.room.finalScoreBoard
+  );
+  const isHost = useSelector((state) => state.user.user.isHost);
+
+  useEffect(() => {
+    window.onpopstate = (e) => {
+      dispatch(userLeaveRoom());
+      dispatch(setRoomLoading());
+      dispatch(setUserLoading());
+      if (id) {
+        dispatch(setRoomNavigatedFrom(id));
+      }
+    };
+  });
+
+  useEffect(() => {
+    if (gameState === 'quit') {
+      history.push(`/rooms/${roomId}`);
+    }
+  }, [gameState]);
 
   if (!roomId) {
+    dispatch(setRoomNavigatedFrom(id));
     return (
       <Redirect
         to={{
@@ -37,22 +76,16 @@ const Game = () => {
     );
   }
 
-  // if (isCurrentPlayer) {
-  //   switch (gameState) {
-  //     case 'choosing':
-  //       return (
-  //         <div onClick={dispatch({ type: 'pick word', payload: 'sun' })}>
-  //           Choose word
-  //         </div>
-  //       );
-  //     case 'roundResults':
-  //       return <div>Room results</div>;
-  //     case 'endGame':
-  //       return <div>End game</div>;
-  //     default:
-  //       return <div>Drawing</div>;
-  //   }
-  // }
+  const playAgain = () => {
+    dispatch(startAnotherGame(roomId));
+  };
+
+  const quitGame = () => {
+    // history.go(-1);
+    dispatch(quitAndCleanUpGame(roomId));
+    // dispatch(setRoomLoading());
+    // dispatch(setRoom({}));
+  };
 
   const startTimer = () => {
     dispatch(startRoomTimer({ duration, roomId }));
@@ -70,6 +103,7 @@ const Game = () => {
       <GameInfo
         duration={duration}
         word={isCurrentPlayer ? selectedWord : wordHint}
+        currentRound={currentRound > 0 ? currentRound : null}
       />
       <Row>
         <Col md='2'>
@@ -96,6 +130,74 @@ const Game = () => {
             </CoverPanel>
           )}
           {gameState === 'drawing' && <DrawingBoard show={isCurrentPlayer} />}
+          {gameState === 'show turn result' && turnWord && scoreBoard && (
+            <CoverPanel>
+              <Table responsive>
+                <thead>
+                  <tr>
+                    <th colSpan={2}>
+                      The word was{' '}
+                      <span style={{ color: 'green' }}>{turnWord}</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {scoreBoard.map((score) => {
+                    return (
+                      <tr key={score.name}>
+                        <td>{score.name}</td>
+                        <td>
+                          <span style={{ color: 'green' }}>{score.points}</span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </Table>
+            </CoverPanel>
+          )}
+          {gameState === 'game ended' && finalScoreBoard && (
+            <CoverPanel>
+              <Table responsive>
+                <thead>
+                  <tr>
+                    <th colSpan={2}>Final Result</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {finalScoreBoard.map((score) => {
+                    return (
+                      <tr key={score.name}>
+                        <td>{score.name}</td>
+                        <td>
+                          <span style={{ color: 'green' }}>
+                            {score.totalPoints}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {isHost && (
+                    <tr>
+                      <td>
+                        <Button
+                          style={{ margin: '0 20px' }}
+                          onClick={playAgain}
+                        >
+                          Play Again
+                        </Button>
+                      </td>
+                      <td>
+                        <Button style={{ margin: '0 20px' }} onClick={quitGame}>
+                          Quit
+                        </Button>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </Table>
+            </CoverPanel>
+          )}
         </Col>
       </Row>
     </>

@@ -13,6 +13,9 @@ import {
   RECEIVE_ROOM_DRAWING_INFO,
   SET_GAME_STARTED,
   UPDATE_GAME_STATE,
+  RESET_ROOM_WORD_HINT,
+  SET_ROOM_CLEAR_CANVAS,
+  RESET_ROOM_FINAL_SCORE_BOARD,
 } from '../actions/types';
 
 const initialState = {
@@ -76,7 +79,8 @@ export default function (state = initialState, action) {
       return {
         ...state,
         currentMessage: {
-          content: action.payload,
+          content: action.payload.message,
+          color: action.payload.color,
           timestamp: Date.now(),
         },
       };
@@ -98,7 +102,10 @@ export default function (state = initialState, action) {
     case SET_GAME_STARTED:
       return {
         ...state,
-        inGame: true,
+        room: {
+          ...state.room,
+          inGame: true,
+        },
       };
     case UPDATE_GAME_STATE:
       return {
@@ -106,6 +113,33 @@ export default function (state = initialState, action) {
         room: {
           ...state.room,
           ...action.payload,
+        },
+      };
+    case RESET_ROOM_WORD_HINT:
+      return {
+        ...state,
+        room: {
+          ...state.room,
+          wordHint: null,
+        },
+      };
+    case SET_ROOM_CLEAR_CANVAS:
+      return {
+        ...state,
+        room: {
+          ...state.room,
+          clearCanvas: {
+            action: true,
+            timestamp: Date.now(),
+          },
+        },
+      };
+    case RESET_ROOM_FINAL_SCORE_BOARD:
+      return {
+        ...state,
+        room: {
+          ...state.room,
+          finalScoreBoard: null,
         },
       };
     default:

@@ -20,6 +20,12 @@ import {
   START_PRIVATE_GAME,
   SET_GAME_STARTED,
   UPDATE_GAME_STATE,
+  RESET_ROOM_WORD_HINT,
+  START_ANOTHER_GAME,
+  QUIT_GAME,
+  SEND_ON_CANVAS_CLEAR,
+  SET_ROOM_CLEAR_CANVAS,
+  RESET_ROOM_FINAL_SCORE_BOARD,
 } from './types';
 
 export const createPrivateRoom = (username, avatarIndex) => (dispatch) => {
@@ -106,4 +112,28 @@ export const setGameStarted = () => (dispatch) => {
 
 export const updateGameState = (data) => (dispatch) => {
   dispatch({ type: UPDATE_GAME_STATE, payload: data });
+};
+
+export const resetRoomWordHint = () => (dispatch) => {
+  dispatch({ type: RESET_ROOM_WORD_HINT });
+};
+
+export const startAnotherGame = (data) => (dispatch) => {
+  dispatch({ type: START_ANOTHER_GAME, payload: data });
+};
+
+export const quitAndCleanUpGame = (data) => (dispatch) => {
+  dispatch({ type: QUIT_GAME, payload: data });
+};
+
+export const sendOnCanvasClear = () => (dispatch) => {
+  dispatch({ type: SEND_ON_CANVAS_CLEAR });
+};
+
+export const setRoomClearCanvas = () => (dispatch) => {
+  dispatch({ type: SET_ROOM_CLEAR_CANVAS });
+};
+
+export const resetRoomFinalScoreBoard = () => (dispatch) => {
+  dispatch({ type: RESET_ROOM_FINAL_SCORE_BOARD });
 };

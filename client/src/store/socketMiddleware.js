@@ -9,6 +9,10 @@ import {
   SEND_ROOM_DRAWING_INFO,
   START_PRIVATE_GAME,
   PICK_WORD,
+  START_ANOTHER_GAME,
+  QUIT_GAME,
+  LEAVE_A_ROOM,
+  SEND_ON_CANVAS_CLEAR,
 } from './actions/types';
 import {
   setRoom,
@@ -23,6 +27,11 @@ import {
   receiveRoomDrawingInfo,
   setGameStarted,
   updateGameState,
+  // startRoomTimer,
+  resetRoomWordHint,
+  // setRoomNavigatedFrom,
+  setRoomClearCanvas,
+  resetRoomFinalScoreBoard,
 } from './actions/room';
 import {
   setCurrentUser,
@@ -31,9 +40,11 @@ import {
   setUserOnUserLeft,
   updateUserPickingRemainingTime,
   setUserWordList,
+  setUserSelectedWord,
+  resetCurrentPlayer,
 } from './actions/user';
 
-const URL = 'http://localhost:5001';
+const URL = process.env.SERVER_URL || 'http://localhost:5001';
 let socket = null;
 
 const socketMiddleware = (store) => (next) => async (action) => {
@@ -69,14 +80,21 @@ const socketMiddleware = (store) => (next) => async (action) => {
         });
         socket.on('in game', (data) => {
           store.dispatch(updateGameState(data));
+          if (data && data.gameState && data.gameState === 'show turn result') {
+            store.dispatch(setUserSelectedWord(null));
+          }
         });
         socket.on('pick words', (data) => {
           store.dispatch(setUserWordList(data));
-          // socket.emit('start choosing timer', 10, (word) => {
-          //   if (word) {
-          //     // dispatch set word
-          //     store.dispatch(setUserPickedWord(word));
-          //   }
+          // if current player doesn't pick a word within 20 sec, then pick one for him
+          // socket.emit('start choosing timer', 20, (data) => {
+          //   store.dispatch(setUserSelectedWord(data.word));
+          //   store.dispatch(
+          //     startRoomTimer({
+          //       duration: data.duration,
+          //       roomId: data.roomId,
+          //     })
+          //   );
           // });
         });
         socket.on('picking remaining time', (data) => {
@@ -84,6 +102,22 @@ const socketMiddleware = (store) => (next) => async (action) => {
         });
         socket.on('set game started', () => {
           store.dispatch(setGameStarted());
+          store.dispatch(resetRoomFinalScoreBoard());
+        });
+        socket.on('clear current player', () => {
+          store.dispatch(resetCurrentPlayer());
+        });
+        socket.on('reset room word hint', () => {
+          store.dispatch(resetRoomWordHint());
+        });
+        // socket.on('quit game', (data) => {
+        // store.dispatch(setRoomLoading());
+        // store.dispatch(setRoom({}));
+        // store.dispatch(setRoomNavigatedFrom(data.roomId));
+        // store.dispatch(updateGameState(data));
+        // });
+        socket.on('clear canvas', () => {
+          store.dispatch(setRoomClearCanvas());
         });
       }
       break;
@@ -175,6 +209,26 @@ const socketMiddleware = (store) => (next) => async (action) => {
     case PICK_WORD:
       if (socket) {
         socket.emit('word picked', action.payload);
+      }
+      break;
+    case START_ANOTHER_GAME:
+      if (socket) {
+        socket.emit('start another game', action.payload);
+      }
+      break;
+    case QUIT_GAME:
+      if (socket) {
+        socket.emit('quit game', action.payload);
+      }
+      break;
+    case LEAVE_A_ROOM:
+      if (socket) {
+        socket.emit('leave a room');
+      }
+      break;
+    case SEND_ON_CANVAS_CLEAR:
+      if (socket) {
+        socket.emit('clear canvas');
       }
       break;
     default:
