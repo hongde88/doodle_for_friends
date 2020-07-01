@@ -10,7 +10,7 @@ import { createPrivateRoom, joinRoom } from '../../store/actions/room';
 import Avatar from '../Avatar/Avatar';
 import styles from './PlayerCreation.module.css';
 
-const NUMBER_OF_AVATARS = 10;
+const NUMBER_OF_AVATARS = 11;
 
 const PlayerCreation = () => {
   const dispatch = useDispatch();
