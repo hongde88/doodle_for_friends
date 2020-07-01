@@ -1,28 +1,28 @@
 import React, { useEffect } from 'react';
+import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
-import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
 import { useDispatch, useSelector } from 'react-redux';
-import { Redirect, useParams, useHistory } from 'react-router-dom';
+import { Redirect, useHistory, useParams } from 'react-router-dom';
 import {
-  startRoomTimer,
-  startAnotherGame,
   quitAndCleanUpGame,
   setRoomLoading,
   // setRoom,
   setRoomNavigatedFrom,
+  startAnotherGame,
+  startRoomTimer,
 } from '../../store/actions/room';
 import {
-  userPickAWord,
+  setUserLoading,
   setUserSelectedWord,
   userLeaveRoom,
-  setUserLoading,
+  userPickAWord,
 } from '../../store/actions/user';
-import PlayerList from '../PlayerList/PlayerList';
-import GameInfo from '../GameInfo/GameInfo';
-import DrawingBoard from '../DrawingBoard/DrawingBoard';
 import CoverPanel from '../CoverPanel/CoverPanel';
+import DrawingBoard from '../DrawingBoard/DrawingBoard';
+import GameInfo from '../GameInfo/GameInfo';
+import PlayerList from '../PlayerList/PlayerList';
 
 const Game = () => {
   const history = useHistory();
@@ -63,7 +63,7 @@ const Game = () => {
     if (gameState === 'quit') {
       history.push(`/rooms/${roomId}`);
     }
-  }, [gameState]);
+  }, [gameState, history, roomId]);
 
   if (!roomId) {
     dispatch(setRoomNavigatedFrom(id));
@@ -106,10 +106,10 @@ const Game = () => {
         currentRound={currentRound > 0 ? currentRound : null}
       />
       <Row>
-        <Col md='2'>
+        <Col md='3'>
           <PlayerList />
         </Col>
-        <Col md='10' style={{ marginRight: 0, padding: 0 }}>
+        <Col md='9' style={{ marginRight: 0, padding: 0 }}>
           {gameState === 'starting' && currentRound && (
             <CoverPanel isRound={true}>Round {currentRound}</CoverPanel>
           )}

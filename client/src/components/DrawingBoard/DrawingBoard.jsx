@@ -1,14 +1,14 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import styles from './DrawingBoard.module.css';
-import {
-  sendRoomDrawingInfo,
-  sendOnCanvasClear,
-} from '../../store/actions/room';
 import PropType from 'prop-types';
-import Row from 'react-bootstrap/Row';
+import React, { useEffect, useRef, useState } from 'react';
 import Col from 'react-bootstrap/Col';
+import Row from 'react-bootstrap/Row';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  sendOnCanvasClear,
+  sendRoomDrawingInfo,
+} from '../../store/actions/room';
 import Palette from '../Palette/Palette';
+import styles from './DrawingBoard.module.css';
 
 const useWindowSize = () => {
   const [size, setSize] = useState(null);
@@ -57,6 +57,61 @@ const DrawingBoard = ({ show }) => {
     setCanvasCurrentSize({ width: canvas.width, height: canvas.height });
     setCtx(canvas.getContext('2d'));
   }, []);
+
+  const drawLine = (
+    x0,
+    y0,
+    x1,
+    y1,
+    color,
+    thickness,
+    emit,
+    drawingCanvasInfo,
+    isCurrentPlayerDrawing
+  ) => {
+    setLines([...lines, { x0, y0, x1, y1, color, thickness }]);
+
+    if (!ctx) {
+      setCtx(canvasRef.current.getContext('2d'));
+      return;
+    }
+
+    if (drawingCanvasInfo && !isCurrentPlayerDrawing) {
+      ctx.scale(
+        canvasCurrentSize.width / drawingCanvasInfo.width,
+        canvasCurrentSize.height / drawingCanvasInfo.height
+      );
+    }
+
+    ctx.beginPath();
+    ctx.moveTo(x0, y0);
+    ctx.lineTo(x1, y1);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = thickness;
+    ctx.lineJoin = 'round';
+    ctx.closePath();
+    ctx.stroke();
+
+    if (drawingCanvasInfo && !isCurrentPlayerDrawing) {
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+    }
+
+    if (!emit) {
+      return;
+    }
+
+    dispatch(
+      sendRoomDrawingInfo({
+        x0,
+        y0,
+        x1,
+        y1,
+        color,
+        thickness,
+        drawingCanvasInfo,
+      })
+    );
+  };
 
   useEffect(() => {
     if (windowSize) {
@@ -121,83 +176,7 @@ const DrawingBoard = ({ show }) => {
       setCanvasCurrentSize({ width: canvas.width, height: canvas.height });
       setCtx(ctx);
     }
-  }, [windowSize]);
-
-  useEffect(() => {
-    if (drawingInfo) {
-      drawLine(
-        drawingInfo.x0,
-        drawingInfo.y0,
-        drawingInfo.x1,
-        drawingInfo.y1,
-        drawingInfo.color,
-        drawingInfo.thickness,
-        false,
-        drawingInfo.drawingCanvasInfo
-      );
-    }
-  }, [drawingInfo]);
-
-  useEffect(() => {
-    if (clearCanvas && clearCanvas.action) {
-      onCanvasClear();
-    }
-  }, [clearCanvas]);
-
-  const drawLine = (
-    x0,
-    y0,
-    x1,
-    y1,
-    color,
-    thickness,
-    emit,
-    drawingCanvasInfo,
-    isCurrentPlayerDrawing
-  ) => {
-    setLines([...lines, { x0, y0, x1, y1, color, thickness }]);
-
-    if (!ctx) {
-      setCtx(canvasRef.current.getContext('2d'));
-      return;
-    }
-
-    if (drawingCanvasInfo && !isCurrentPlayerDrawing) {
-      ctx.scale(
-        canvasCurrentSize.width / drawingCanvasInfo.width,
-        canvasCurrentSize.height / drawingCanvasInfo.height
-      );
-    }
-
-    ctx.beginPath();
-    ctx.moveTo(x0, y0);
-    ctx.lineTo(x1, y1);
-    ctx.strokeStyle = color;
-    ctx.lineWidth = thickness;
-    ctx.lineJoin = 'round';
-    ctx.closePath();
-    ctx.stroke();
-
-    if (drawingCanvasInfo && !isCurrentPlayerDrawing) {
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-    }
-
-    if (!emit) {
-      return;
-    }
-
-    dispatch(
-      sendRoomDrawingInfo({
-        x0,
-        y0,
-        x1,
-        y1,
-        color,
-        thickness,
-        drawingCanvasInfo,
-      })
-    );
-  };
+  }, [windowSize, canvasOriginalSize, lines]);
 
   // const onColorUpdate = (color) => {
   //   setCurrent({
@@ -223,6 +202,27 @@ const DrawingBoard = ({ show }) => {
       dispatch(sendOnCanvasClear());
     }
   };
+
+  useEffect(() => {
+    if (drawingInfo) {
+      drawLine(
+        drawingInfo.x0,
+        drawingInfo.y0,
+        drawingInfo.x1,
+        drawingInfo.y1,
+        drawingInfo.color,
+        drawingInfo.thickness,
+        false,
+        drawingInfo.drawingCanvasInfo
+      );
+    }
+  }, [drawingInfo]);
+
+  useEffect(() => {
+    if (clearCanvas && clearCanvas.action) {
+      onCanvasClear();
+    }
+  }, [clearCanvas]);
 
   const onPaletteUpdate = (type, val) => {
     if (type === 'color') {

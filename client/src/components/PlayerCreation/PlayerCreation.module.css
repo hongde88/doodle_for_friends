@@ -1,11 +1,7 @@
+.leftArrow,
 .rightArrow {
-  -webkit-transform: scaleX(-1);
-  transform: scaleX(-1);
-}
-
-.arrow {
-  width: 4rem;
-  height: 4rem;
+  width: 4rem !important;
+  height: 4rem !important;
   cursor: pointer;
 }
 

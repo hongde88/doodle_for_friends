@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import ArrowLeft from '@material-ui/icons/ArrowLeft';
+import ArrowRight from '@material-ui/icons/ArrowRight';
+import React, { useEffect, useState } from 'react';
+import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
-import Image from 'react-bootstrap/Image';
-import Alert from 'react-bootstrap/Alert';
 import { useDispatch, useSelector } from 'react-redux';
 import { useHistory } from 'react-router-dom';
-
 import { createPrivateRoom, joinRoom } from '../../store/actions/room';
 import Avatar from '../Avatar/Avatar';
 import styles from './PlayerCreation.module.css';
 
-const NUMBER_OF_AVATARS = 3;
+const NUMBER_OF_AVATARS = 10;
 
 const PlayerCreation = () => {
   const dispatch = useDispatch();
@@ -70,17 +70,13 @@ const PlayerCreation = () => {
         <Alert variant='danger'>{errors.roomError || errors.userError}</Alert>
       )}
       <div className={styles.avatarDiv}>
-        <Image
-          src={`/images/arrow.png`}
-          className={styles.arrow}
-          onClick={prevAvatar}
-        />
+        <Button variant='icon' size='sm' onClick={prevAvatar}>
+          <ArrowLeft className={styles.leftArrow} />
+        </Button>
         <Avatar index={avatarIndex} />
-        <Image
-          src={`/images/arrow.png`}
-          className={`${styles.rightArrow} ${styles.arrow}`}
-          onClick={nextAvatar}
-        />
+        <Button variant='icon' size='sm' onClick={nextAvatar}>
+          <ArrowRight className={styles.rightArrow} />
+        </Button>
       </div>
       <Form className='d-flex flex-column align-items-center'>
         <Form.Group controlId='username'>

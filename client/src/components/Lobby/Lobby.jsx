@@ -76,6 +76,21 @@ const Lobby = () => {
           <RoomSettings />
         </Col>
         <Col md={{ span: 7, offset: 1 }}>
+          <div className={styles.copyRoomId}>
+            Room Id: {window.location.href}
+            <CopyToClipboard
+              text={window.location.href}
+              onCopy={() => {
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+              }}
+            >
+              <Button variant={copied ? 'success' : 'primary'}>
+                {copied ? 'Copied' : 'Copy'}
+              </Button>
+            </CopyToClipboard>
+          </div>
+
           <div className={styles.playersDiv}>
             {players.map((player, idx) => (
               <Avatar
@@ -89,20 +104,6 @@ const Lobby = () => {
           </div>
         </Col>
       </Row>
-      <div className={styles.copyRoomId}>
-        Room Id: {window.location.href}
-        <CopyToClipboard
-          text={window.location.href}
-          onCopy={() => {
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
-          }}
-        >
-          <Button variant={copied ? 'success' : 'primary'}>
-            {copied ? 'Copied' : 'Copy'}
-          </Button>
-        </CopyToClipboard>
-      </div>
     </div>
   );
 };

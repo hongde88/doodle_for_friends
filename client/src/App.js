@@ -1,7 +1,6 @@
 import React from 'react';
 import Col from 'react-bootstrap/Col';
 import Container from 'react-bootstrap/Container';
-import Image from 'react-bootstrap/Image';
 import Row from 'react-bootstrap/Row';
 import { Provider } from 'react-redux';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
@@ -9,14 +8,15 @@ import './App.css';
 import Chat from './components/Chat/Chat';
 import Game from './components/Game/Game';
 import Lobby from './components/Lobby/Lobby';
-import PlayerCreation from './components/PlayerCreation/PlayerCreation';
+import Logo from './components/Logo/Logo';
+import Splash from './pages/Splash/Splash';
 import configureStore from './store/configureStore';
 
 const Room = ({ match }) => {
   return (
     <>
       <div className='small-logo'>
-        <Image src={`/images/logo/doodle.gif`} />
+        <Logo size='sm' />
       </div>
       <Row>
         <Col md='9'>
@@ -43,8 +43,7 @@ const App = () => {
       <Router>
         <Switch>
           <Route path='/' exact>
-            <Image src={`/images/logo/doodle.gif`} />
-            <PlayerCreation />
+            <Splash />
           </Route>
           <Route path='/rooms' component={Room} />
         </Switch>

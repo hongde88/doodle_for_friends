@@ -1,5 +1,6 @@
 import CreateIcon from '@material-ui/icons/Create';
 import React from 'react';
+import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import { useSelector } from 'react-redux';
 import Avatar from '../Avatar/Avatar';
@@ -32,34 +33,25 @@ const PlayerList = () => {
       idx = finalScoreBoard.findIndex((score) => score.name === playerName);
     }
 
-    return idx >= 0 ? idx + 1 : null;
+    return idx >= 0 ? `#${idx + 1}` : '';
   };
 
   return (
     <div className={styles.playersDiv}>
       {players.map((player, idx) => {
-        const rank = (
-          <div className={styles.rankDiv}>#{getRank(player.name)}</div>
-        );
-        const user = (
-          <div className={styles.nameAndScoreDiv}>
-            {player.name} {player.name === userName && '(you)'}
-            {getScore(player.name)}
-          </div>
-        );
-        const avatar = (
-          <div className={styles.avatarDiv}>
-            <Col>{player.name === currentPlayerName && <CreateIcon />}</Col>
-            <Avatar key={idx} index={player.index} small={true} />
-          </div>
-        );
-
         return (
-          <div key={`${player}_${idx}`} className={styles.playerDiv}>
-            {rank}
-            {user}
-            {avatar}
-          </div>
+          <Row key={`${player}_${idx}`} className={styles.playerDiv}>
+            <Col>
+              <Avatar key={idx} index={player.index} small={true} />
+            </Col>
+            <Col>
+              <Row>{player.name} </Row>
+              <Row>{player.name === userName && '(you)'}</Row>
+              <Row>{player.name === currentPlayerName && <CreateIcon />}</Row>
+            </Col>
+            <Col>{getRank(player.name)}</Col>
+            <Col>{getScore(player.name)}</Col>
+          </Row>
         );
       })}
     </div>

@@ -1,0 +1,12 @@
+.splashContainer {
+  height: 100vh;
+}
+
+.leftContainer {
+  height: 100%;
+  background: lightsalmon;
+}
+
+.rightContainer {
+  height: 100%;
+}

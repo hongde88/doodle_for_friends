@@ -1,3 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Pangolin&display=swap');
+
 body {
+  height: 100vh;
   text-align: center;
+  font-family: 'Pangolin', cursive;
 }
+
+#root {
+  height: 100%;
+}
+/* 
+.btn-icon {
+  color: cornflowerblue;
+}
+
+.btn-icon:hover {
+  color: royalblue;
+}
+
+.btn-icon:focus {
+  box-shadow: 0;
+}
+
+.btn-primary {
+  border-color: cornflowerblue;
+  background-color: cornflowerblue;
+} */
