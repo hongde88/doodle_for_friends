@@ -26,6 +26,7 @@ import {
   SEND_ON_CANVAS_CLEAR,
   SET_ROOM_CLEAR_CANVAS,
   RESET_ROOM_FINAL_SCORE_BOARD,
+  RESET_ROOM_TIMER,
 } from './types';
 
 export const createPrivateRoom = (username, avatarIndex) => (dispatch) => {
@@ -136,4 +137,8 @@ export const setRoomClearCanvas = () => (dispatch) => {
 
 export const resetRoomFinalScoreBoard = () => (dispatch) => {
   dispatch({ type: RESET_ROOM_FINAL_SCORE_BOARD });
+};
+
+export const resetRoomTimer = () => (dispatch) => {
+  dispatch({ type: RESET_ROOM_TIMER });
 };

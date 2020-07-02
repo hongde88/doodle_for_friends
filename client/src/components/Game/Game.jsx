@@ -104,6 +104,9 @@ const Game = () => {
         duration={duration}
         word={isCurrentPlayer ? selectedWord : wordHint}
         currentRound={currentRound > 0 ? currentRound : null}
+        stopSound={
+          gameState === 'show turn result' || gameState === 'game ended'
+        }
       />
       <Row>
         <Col md='3'>

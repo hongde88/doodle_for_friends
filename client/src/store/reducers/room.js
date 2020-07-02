@@ -16,6 +16,7 @@ import {
   RESET_ROOM_WORD_HINT,
   SET_ROOM_CLEAR_CANVAS,
   RESET_ROOM_FINAL_SCORE_BOARD,
+  RESET_ROOM_TIMER,
 } from '../actions/types';
 
 const initialState = {
@@ -81,6 +82,7 @@ export default function (state = initialState, action) {
         currentMessage: {
           content: action.payload.message,
           color: action.payload.color,
+          correctGuess: action.payload.correctGuess,
           timestamp: Date.now(),
         },
       };
@@ -141,6 +143,11 @@ export default function (state = initialState, action) {
           ...state.room,
           finalScoreBoard: null,
         },
+      };
+    case RESET_ROOM_TIMER:
+      return {
+        ...state,
+        guessingRemainingTime: null,
       };
     default:
       return state;

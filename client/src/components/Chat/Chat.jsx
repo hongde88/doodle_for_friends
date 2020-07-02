@@ -4,6 +4,7 @@ import Form from 'react-bootstrap/Form';
 import { sendMessageToRoom } from '../../store/actions/room';
 import Axios from 'axios';
 import YoutubeList from '../YoutubeList/YoutubeList';
+import { useAudio } from '../Audio/Audio';
 import styles from './Chat.module.css';
 
 const Chat = () => {
@@ -14,9 +15,13 @@ const Chat = () => {
   const roomId = useSelector((state) => state.room.room.roomId);
   const [searches, setSearches] = useState([]);
   const [videoId, setVideoId] = useState(null);
+  const playWinAudio = useAudio('/sounds/win.wav').playAudio;
 
   useEffect(() => {
     if (currentMessage) {
+      if (currentMessage.correctGuess) {
+        playWinAudio(true);
+      }
       addMessage(currentMessage.content, currentMessage.color);
     }
   }, [currentMessage]);
