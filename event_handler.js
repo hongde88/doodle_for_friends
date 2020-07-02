@@ -276,11 +276,13 @@ class EventHandler {
           this.socket.broadcast.emit('new message', {
             message,
             color,
+            correctGuess: true,
           });
           message = 'You guessed the word';
           this.socket.emit('new message', {
             message,
             color,
+            correctGuess: true,
           });
         } else {
           message = 'You already guessed the word';
@@ -544,6 +546,9 @@ class EventHandler {
     return () => {
       const roomId = this.socket.roomId;
       if (rooms[roomId]) {
+        Object.keys(rooms[roomId].users).forEach((name) => {
+          rooms[roomId].users[name].totalPoints = 0;
+        });
         const currentRound = 1;
         rooms[roomId].currentRound = currentRound;
 
